@@ -114,7 +114,7 @@ It also returns three practical next steps and educational overview cards for mu
 
 The cards also include Fixed Deposit (FD). Each option uses an illustrative annual rate, calculates the monthly and yearly contribution needed for the priority goal, and reports the projected target value and modeled growth. These figures are scenarios, not guaranteed returns.
 
-The browser then lets the user increase or decrease each option amount. `updateInvestmentOption()` recalculates the compound projected value and gap/surplus, while `updateInvestmentTotals()` aggregates the currently selected amounts across the option cards.
+The browser then lets the user increase or decrease each option amount. `updateInvestmentOption()` recalculates the compound projected value and gap/surplus, while `updateInvestmentTotals()` aggregates the currently selected amounts across the option cards. The totals also show the minimum and maximum monthly amounts across the alternative investment scenarios and the shortest-to-longest goal timeline. The note explains that summing every option is a comparison portfolio, not a recommendation to buy every product.
 
 ## 5. Calculation engine functions
 

@@ -152,6 +152,7 @@ async def default_goals(city: str) -> list[dict[str, str | float]]:
         {"name": "Education", "current_cost": 500000},
         {"name": "Vacation / Trip", "current_cost": 200000},
         {"name": "Car / Bike", "current_cost": engine.get_current_cost(city, "Car")},
+        {"name": "Emergency Fund", "current_cost": 300000},
     ]
 
 

@@ -19,7 +19,7 @@ let investmentState = [];
 function goalCard(goal, index, custom = false) {
   const enabled = custom || ['Marriage', 'Home', 'Car / Bike'].includes(goal.name);
   const id = `${custom ? 'custom' : 'default'}-${index}`;
-  const years = custom ? 5 : (goal.name === 'Marriage' ? 5 : goal.name === 'Car / Bike' ? 4 : 10);
+  const years = custom ? 5 : (goal.name === 'Emergency Fund' ? 1 : goal.name === 'Vacation / Trip' ? 3 : goal.name === 'Marriage' ? 5 : goal.name === 'Car / Bike' ? 4 : 10);
   return `<article class="configurable-goal ${custom ? 'custom-goal-card' : ''} ${enabled ? 'is-enabled' : ''}" data-goal-id="${id}">
     <div class="goal-card-top"><div><span class="goal-icon">${String(index + 1).padStart(2, '0')}</span><h4>${goal.name}</h4></div>
       <label class="toggle"><input class="goal-enabled" type="checkbox" ${enabled ? 'checked' : ''}><span></span><b>${enabled ? 'Planned' : 'Paused'}</b></label></div>
@@ -146,7 +146,12 @@ function updateInvestmentTotals() {
   }, 0);
   document.querySelector('#investment-total-monthly').textContent = `${money.format(monthly)} / month`;
   document.querySelector('#investment-total-projected').textContent = money.format(projected);
-  document.querySelector('#investment-total-note').textContent = 'This total assumes the selected amount is allocated to every option card; compare options individually before investing.';
+  const amounts = investmentState.map((option) => option.selected_monthly);
+  const periods = investmentState.map((option) => option.years);
+  document.querySelector('#investment-total-min').textContent = `${money.format(Math.min(...amounts))} / month`;
+  document.querySelector('#investment-total-max').textContent = `${money.format(Math.max(...amounts))} / month`;
+  document.querySelector('#investment-total-period').textContent = `${Math.min(...periods)}–${Math.max(...periods)} years`;
+  document.querySelector('#investment-total-note').textContent = 'Minimum and maximum are alternative option scenarios. The total assumes the selected amount is allocated to every card; compare options individually before investing.';
 }
 
 function showError(data) {

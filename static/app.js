@@ -99,7 +99,7 @@ function renderSuggestionPlan(plan) {
   document.querySelector('#horizon-note').textContent = plan.horizon_note;
   document.querySelector('#suggestion-steps').innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join('');
   document.querySelector('#investment-options').innerHTML = plan.investment_options.map((option) => `
-    <article class="investment-card"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><p>${option.note}</p></article>
+    <article class="investment-card"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><div class="option-amounts"><b>${money.format(option.monthly_amount)}<small>/ month</small></b><b>${money.format(option.yearly_amount)}<small>/ year</small></b></div><p>Goal value: ${money.format(option.goal_amount)} in ${option.years} years.</p><p>Modeled growth: ${money.format(option.projected_growth)} at ${option.annual_return}% p.a.</p><p>${option.note}</p></article>
   `).join('');
 }
 

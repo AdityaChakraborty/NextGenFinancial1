@@ -112,6 +112,8 @@ Sorts enabled goals by timeline, selects the nearest goal as the first priority,
 
 It also returns three practical next steps and educational overview cards for mutual funds, gold, stocks, and real estate. These are not personalized financial advice or product recommendations; each card explains a broad use, risk level, and planning consideration.
 
+The cards also include Fixed Deposit (FD). Each option uses an illustrative annual rate, calculates the monthly and yearly contribution needed for the priority goal, and reports the projected target value and modeled growth. These figures are scenarios, not guaranteed returns.
+
 ## 5. Calculation engine functions
 
 ### `FinancialEngine.__init__()`

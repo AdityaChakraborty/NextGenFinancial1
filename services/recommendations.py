@@ -1,6 +1,34 @@
 from typing import Any
 
 
+def _investment_scenario(
+    name: str,
+    annual_return: float,
+    fit: str,
+    risk: str,
+    note: str,
+    future_goal_cost: float,
+    years: int,
+) -> dict[str, Any]:
+    monthly_rate = annual_return / 100 / 12
+    months = years * 12
+    monthly_amount = future_goal_cost * monthly_rate / ((1 + monthly_rate) ** months - 1)
+    total_contributions = monthly_amount * months
+    return {
+        "name": name,
+        "fit": fit,
+        "risk": risk,
+        "note": note,
+        "annual_return": annual_return,
+        "years": years,
+        "goal_amount": round(future_goal_cost, 2),
+        "monthly_amount": round(monthly_amount, 2),
+        "yearly_amount": round(monthly_amount * 12, 2),
+        "projected_value": round(future_goal_cost, 2),
+        "projected_growth": round(future_goal_cost - total_contributions, 2),
+    }
+
+
 def build_suggestion_plan(
     goals: list[dict[str, Any]], analysis: dict[str, Any], age: int
 ) -> dict[str, Any]:
@@ -42,29 +70,30 @@ def build_suggestion_plan(
             "Review the contribution amount yearly when salary, costs, or timelines change.",
         ],
         "investment_options": [
-            {
-                "name": "Mutual funds",
-                "fit": "Diversified long-term growth",
-                "risk": "Medium to high",
-                "note": "Consider broad, diversified funds for long horizons; returns are not guaranteed.",
-            },
-            {
-                "name": "Gold",
-                "fit": "Diversifier and value hedge",
-                "risk": "Medium",
-                "note": "Use as a limited diversifier rather than the only goal investment.",
-            },
-            {
-                "name": "Stocks",
-                "fit": "Long-term growth potential",
-                "risk": "High",
-                "note": "Use only for goals far away and diversify; avoid relying on one company.",
-            },
-            {
-                "name": "Real estate",
-                "fit": "Large, long-term asset goal",
-                "risk": "Medium to high",
-                "note": "Plan for down payment, liquidity, taxes, maintenance, and borrowing costs.",
-            },
+            _investment_scenario(
+                "Mutual funds", 12, "Diversified long-term growth", "Medium to high",
+                "Consider broad, diversified funds for long horizons; returns are not guaranteed.",
+                priority["future_cost"], priority["years"],
+            ),
+            _investment_scenario(
+                "Fixed deposit (FD)", 6.5, "Capital stability and predictable interest", "Low to medium",
+                "Useful for shorter horizons and stability; rates, tax, and early-withdrawal rules vary.",
+                priority["future_cost"], priority["years"],
+            ),
+            _investment_scenario(
+                "Gold", 7, "Diversifier and value hedge", "Medium",
+                "Use as a limited diversifier rather than the only goal investment.",
+                priority["future_cost"], priority["years"],
+            ),
+            _investment_scenario(
+                "Stocks", 14, "Long-term growth potential", "High",
+                "Use only for goals far away and diversify; avoid relying on one company.",
+                priority["future_cost"], priority["years"],
+            ),
+            _investment_scenario(
+                "Real estate", 9, "Large, long-term asset goal", "Medium to high",
+                "Plan for down payment, liquidity, taxes, maintenance, and borrowing costs.",
+                priority["future_cost"], priority["years"],
+            ),
         ],
     }

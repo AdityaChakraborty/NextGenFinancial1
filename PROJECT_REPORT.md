@@ -43,6 +43,10 @@ The app is fully local. It does not use Supabase, paid APIs, RAG, an external LL
 
 This is an educational financial-planning simulation, not professional financial advice.
 
+## Investment option scenarios
+
+The suggestion section models five educational routes for the selected priority goal: mutual funds at 12%, fixed deposits at 6.5%, gold at 7%, stocks at 14%, and real estate at 9% annual return assumptions. For every option it calculates the monthly amount and yearly amount needed to reach that goal's projected future cost within its timeline. The displayed yearly amount is calculated from the unrounded monthly model, so it may differ slightly from the visible monthly amount multiplied by 12 because both values are rounded for display. Projected growth is scenario math, not a promise of return.
+
 ## Optional ML experiment
 
 The project also includes an isolated salary-prediction experiment. It is not used to replace the user's directly entered salary in the planner.

@@ -24,9 +24,10 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
     "city": "Pune",
     "salary": 120000,
     "saving_percentage": 30,
-    "years_to_marriage": 5,
-    "years_to_car": 3,
-    "years_to_home": 10
+    "goals": [
+      {"name": "Marriage", "current_cost": 1000000, "years": 5, "frequency": "monthly"},
+      {"name": "Home", "current_cost": 12000000, "years": 10, "frequency": "yearly"}
+    ]
   }'
 ```
 
@@ -42,4 +43,4 @@ The application is fully local and uses `city_goal_costs.csv` as its only refere
 
 The UI also loads the available cities from the API, validates input with readable field-level errors, provides a next-step recommendation, and lets the user download the generated plan as JSON.
 
-Use **Add custom goal** to add a personal goal such as Education, Travel, Business, or Emergency Fund. Enter its current estimated cost and timeline; it will be included in the same calculation and feasibility analysis.
+Use **Add custom goal** to add a personal goal such as Education, Travel, Business, or Emergency Fund. Enter its current estimated cost and timeline; it will be included in the same calculation and feasibility analysis. Each built-in and custom goal can be switched on/off, adjusted with a 1–60 year slider, customised with a cost, and set to monthly or yearly contributions.

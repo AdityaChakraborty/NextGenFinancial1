@@ -21,10 +21,11 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 
-class CustomGoal(BaseModel):
+class GoalRequest(BaseModel):
     name: str = Field(min_length=1, max_length=60)
     current_cost: float = Field(gt=0)
     years: int = Field(gt=0, le=60)
+    frequency: str = Field(default="monthly", pattern="^(monthly|yearly)$")
 
     @field_validator("name", mode="before")
     @classmethod
@@ -45,10 +46,7 @@ class PlanRequest(BaseModel):
     city: str = Field(min_length=1, max_length=100)
     salary: float = Field(gt=0)
     saving_percentage: float = Field(gt=0, le=100)
-    years_to_marriage: int = Field(gt=0, le=60)
-    years_to_car: int = Field(gt=0, le=60)
-    years_to_home: int = Field(gt=0, le=60)
-    custom_goals: list[CustomGoal] = Field(default_factory=list, max_length=8)
+    goals: list[GoalRequest] = Field(min_length=1, max_length=12)
 
     @field_validator("name", "city", mode="before")
     @classmethod
@@ -63,10 +61,10 @@ class PlanRequest(BaseModel):
         return value
 
     @model_validator(mode="after")
-    def reject_duplicate_custom_goals(self):
-        names = [goal.name.casefold() for goal in self.custom_goals]
+    def reject_duplicate_goals(self):
+        names = [goal.name.casefold() for goal in self.goals]
         if len(names) != len(set(names)):
-            raise ValueError("custom goal names must be unique")
+            raise ValueError("goal names must be unique")
         return self
 
 
@@ -90,15 +88,21 @@ def calculate_goal(city: str, goal: str, years: int) -> dict[str, float]:
     }
 
 
-def calculate_custom_goal(goal: CustomGoal) -> dict[str, float | str | int]:
+def calculate_selected_goal(goal: GoalRequest) -> dict[str, float | str | int]:
     future_cost = engine.calculate_future_cost(goal.current_cost, goal.years)
     monthly_investment = engine.required_monthly_investment(future_cost, goal.years)
     return {
         "name": goal.name,
         "years": goal.years,
+        "frequency": goal.frequency,
         "current_cost": round(goal.current_cost, 2),
         "future_cost": round(future_cost, 2),
         "monthly_sip": round(monthly_investment, 2),
+        "yearly_investment": round(monthly_investment * 12, 2),
+        "contribution_amount": round(
+            monthly_investment if goal.frequency == "monthly" else monthly_investment * 12,
+            2,
+        ),
     }
 
 
@@ -117,21 +121,27 @@ async def list_cities() -> list[str]:
     return sorted(engine.city_data["City"].dropna().astype(str).unique().tolist())
 
 
+@app.get("/api/v1/default-goals")
+async def default_goals(city: str) -> list[dict[str, str | float]]:
+    return [
+        {"name": "Marriage", "current_cost": engine.get_current_cost(city, "Marriage")},
+        {"name": "Home", "current_cost": engine.get_current_cost(city, "Home")},
+        {"name": "Education", "current_cost": 500000},
+        {"name": "Vacation / Trip", "current_cost": 200000},
+        {"name": "Car / Bike", "current_cost": engine.get_current_cost(city, "Car")},
+    ]
+
+
 @app.post("/api/v1/plan")
 async def generate_plan(request: PlanRequest):
-    marriage = calculate_goal(request.city, "Marriage", request.years_to_marriage)
-    car = calculate_goal(request.city, "Car", request.years_to_car)
-    home = calculate_goal(request.city, "Home", request.years_to_home)
-    custom_goals = [calculate_custom_goal(goal) for goal in request.custom_goals]
-    goal_values = [marriage, car, home, *custom_goals]
+    goal_values = [calculate_selected_goal(goal) for goal in request.goals]
     total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
 
     return {
         "user": request.name,
         "age": request.age,
         "city": request.city,
-        "goals": {"marriage": marriage, "car": car, "home": home},
-        "custom_goals": custom_goals,
+        "goals": goal_values,
         "assumptions": {
             "inflation_rate": engine.INFLATION_RATE,
             "annual_return": engine.ANNUAL_RETURN,

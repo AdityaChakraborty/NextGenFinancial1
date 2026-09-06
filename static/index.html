@@ -61,26 +61,12 @@
         <div class="goals-heading">
           <div>
             <p class="eyebrow">Your milestones</p>
-            <h3>When will you need it?</h3>
+            <h3>Choose, customise, and set the timeline</h3>
           </div>
-          <p class="helper">Set a timeline for each goal.</p>
+          <p class="helper">Turn goals on or off before calculating.</p>
         </div>
-        <div class="goal-grid">
-          <label class="goal-field marriage">
-            <span class="goal-icon" aria-hidden="true">01</span>
-            <span class="goal-name">Marriage</span>
-            <span class="goal-input"><input name="years_to_marriage" type="number" min="1" max="60" value="5" required><small>years</small></span>
-          </label>
-          <label class="goal-field car">
-            <span class="goal-icon" aria-hidden="true">02</span>
-            <span class="goal-name">Car</span>
-            <span class="goal-input"><input name="years_to_car" type="number" min="1" max="60" value="3" required><small>years</small></span>
-          </label>
-          <label class="goal-field home">
-            <span class="goal-icon" aria-hidden="true">03</span>
-            <span class="goal-name">Home</span>
-            <span class="goal-input"><input name="years_to_home" type="number" min="1" max="60" value="10" required><small>years</small></span>
-          </label>
+        <div id="goal-options" class="goal-options" aria-live="polite">
+          <p class="loading-goals">Loading goal options...</p>
         </div>
 
         <div class="custom-goals-heading">

@@ -4,13 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Plan the monthly investment needed for your biggest life goals.">
-  <title>Northstar | Financial Dream Planner</title>
+  <title>Next Gen Financial | Dream Planner</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <main class="shell">
     <section class="intro" aria-labelledby="page-title">
       <div class="brand-mark" aria-hidden="true">N</div>
+      <p class="brand-name">Next Gen Financial</p>
       <p class="eyebrow">Personal finance, made tangible</p>
       <h1 id="page-title">Give your future<br><em>a clear number.</em></h1>
       <p class="intro-copy">A local educational simulation for fresher students. Map the cost of your next chapter and see the monthly investment that gets you there.</p>
@@ -50,7 +51,7 @@
           </label>
           <label class="field">
             <span>Monthly salary <small>INR</small></span>
-            <input name="salary" type="number" min="1000" step="1000" placeholder="120000" required>
+            <input name="salary" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" placeholder="120000" required>
           </label>
           <label class="field">
             <span>Monthly saving goal <small>%</small></span>

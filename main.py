@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent
 engine = FinancialEngine(BASE_DIR / "city_goal_costs.csv")
 
 app = FastAPI(
-    title="Financial Dream Planner",
+    title="Next Gen Financial",
     description="A local educational financial-planning simulation for future goals.",
     version="1.0.0",
 )
@@ -23,7 +23,7 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 class GoalRequest(BaseModel):
     name: str = Field(min_length=1, max_length=60)
-    current_cost: float = Field(gt=0)
+    current_cost: float = Field(gt=0, le=1_000_000_000)
     years: int = Field(gt=0, le=60)
     frequency: str = Field(default="monthly", pattern="^(monthly|yearly)$")
 
@@ -44,7 +44,7 @@ class PlanRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     age: int = Field(ge=18, le=100)
     city: str = Field(min_length=1, max_length=100)
-    salary: float = Field(gt=0)
+    salary: float = Field(ge=1_000, le=10_000_000)
     saving_percentage: float = Field(gt=0, le=100)
     inflation_rate: float = Field(gt=0, le=20, default=6)
     annual_return: float = Field(gt=0, le=30, default=12)

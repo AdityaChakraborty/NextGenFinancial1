@@ -23,7 +23,7 @@ function goalCard(goal, index, custom = false) {
     <div class="goal-card-top"><div><span class="goal-icon">${String(index + 1).padStart(2, '0')}</span><h4>${goal.name}</h4></div>
       <label class="toggle"><input class="goal-enabled" type="checkbox" ${enabled ? 'checked' : ''}><span></span><b>${enabled ? 'Planned' : 'Paused'}</b></label></div>
     <div class="goal-controls">
-      <label>Current estimated cost <small>INR</small><input class="goal-cost" type="number" min="1000" step="1000" value="${goal.current_cost}" required></label>
+      <label>Current estimated cost <small>INR</small><input class="goal-cost" type="number" min="1000" max="1000000000" step="1000" inputmode="numeric" value="${goal.current_cost}" required></label>
       <label>Timeline <output class="years-output">${years} years</output><input class="goal-years" type="range" min="1" max="60" value="${years}"><input class="goal-years-number" type="number" min="1" max="60" value="${years}"></label>
       <fieldset><legend>Contribution frequency</legend><label><input class="frequency" type="radio" name="frequency-${id}" value="monthly" checked> Monthly</label><label><input class="frequency" type="radio" name="frequency-${id}" value="yearly"> Yearly</label></fieldset>
       ${custom ? '<button class="remove-goal" type="button" aria-label="Remove custom goal">&times;</button>' : ''}

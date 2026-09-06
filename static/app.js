@@ -92,6 +92,17 @@ function renderAnalysis(analysis) {
   document.querySelector('#recommendation').textContent = analysis.recommendation;
 }
 
+function renderSuggestionPlan(plan) {
+  document.querySelector('#priority-goal').textContent = `Start with ${plan.priority_goal}`;
+  document.querySelector('#priority-focus').textContent = plan.focus;
+  document.querySelector('#priority-action').textContent = plan.action;
+  document.querySelector('#horizon-note').textContent = plan.horizon_note;
+  document.querySelector('#suggestion-steps').innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join('');
+  document.querySelector('#investment-options').innerHTML = plan.investment_options.map((option) => `
+    <article class="investment-card"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><p>${option.note}</p></article>
+  `).join('');
+}
+
 function showError(data) {
   return Array.isArray(data.errors) ? data.errors.map((error) => `${error.field}: ${error.message}`).join(' ') : (data.detail || 'Could not build your plan.');
 }
@@ -110,7 +121,7 @@ form.addEventListener('submit', async (event) => {
     const response = await fetch('/api/v1/plan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(values) });
     const data = await response.json();
     if (!response.ok) throw new Error(showError(data));
-    latestPlan = data; renderGoalCards(data.goals); renderAnalysis(data.analysis); results.hidden = false; results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    latestPlan = data; renderGoalCards(data.goals); renderAnalysis(data.analysis); renderSuggestionPlan(data.suggestion_plan); results.hidden = false; results.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (error) { message.textContent = error.message; }
   finally { button.disabled = false; button.querySelector('span:first-child').textContent = 'Build my plan'; }
 });

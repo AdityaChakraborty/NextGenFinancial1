@@ -11,6 +11,7 @@ The application is intentionally local. It does not require Supabase, a paid API
 ```text
 main.py                         FastAPI routes, request models, and orchestration
 services/calculator.py          CSV loading, city lookup, formulas, feasibility rules
+services/recommendations.py     Priority planning and investment education cards
 core/exceptions.py              Domain and reference-data HTTP errors
 static/index.html               Browser structure and form controls
 static/style.css                Visual design and responsive layout
@@ -92,6 +93,14 @@ Returns the five built-in choices for a selected city: Marriage, Home, Education
 ### `generate_plan()`
 
 The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their monthly requirements, runs the feasibility analysis, and returns the complete plan and assumptions.
+
+## 4.1 Recommendation functions
+
+### `build_suggestion_plan()` in `services/recommendations.py`
+
+Sorts enabled goals by timeline, selects the nearest goal as the first priority, and adapts the advice to the result status. An Achievable plan receives a protection-and-growth message; a Challenging plan receives gap-closing advice; and a Highly Challenging plan receives prioritization and timeline-extension advice.
+
+It also returns three practical next steps and educational overview cards for mutual funds, gold, stocks, and real estate. These are not personalized financial advice or product recommendations; each card explains a broad use, risk level, and planning consideration.
 
 ## 5. Calculation engine functions
 

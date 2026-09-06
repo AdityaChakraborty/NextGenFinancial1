@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from services.calculator import FinancialEngine
+from services.recommendations import build_suggestion_plan
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -145,6 +146,9 @@ async def generate_plan(request: PlanRequest):
         for goal in request.goals
     ]
     total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
+    analysis = engine.feasibility_analysis(
+        request.salary, request.saving_percentage, total_monthly_investment
+    )
 
     return {
         "user": request.name,
@@ -156,7 +160,6 @@ async def generate_plan(request: PlanRequest):
             "annual_return": request.annual_return,
             "area_type": "Central",
         },
-        "analysis": engine.feasibility_analysis(
-            request.salary, request.saving_percentage, total_monthly_investment
-        ),
+        "analysis": analysis,
+        "suggestion_plan": build_suggestion_plan(goal_values, analysis, request.age),
     }

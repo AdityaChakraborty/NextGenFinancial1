@@ -33,8 +33,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
 
 ## Project rules
 
-- Future cost = current cost x (1 + 0.06) ^ years.
-- Required monthly investment uses a 12% expected annual return, compounded monthly.
+- Future cost = current cost x (1 + inflation rate) ^ years; the project default is 6%.
+- Required monthly investment uses the selected expected annual return, compounded monthly; the project default is 12%.
 - Achievable means the required amount is within the available monthly saving capacity.
 - Challenging means the shortfall is at most 20% of capacity; larger shortfalls are Highly Challenging.
 - This is an educational simulation, not professional financial advice.
@@ -43,4 +43,4 @@ The application is fully local and uses `city_goal_costs.csv` as its only refere
 
 The UI also loads the available cities from the API, validates input with readable field-level errors, provides a next-step recommendation, and lets the user download the generated plan as JSON.
 
-Use **Add custom goal** to add a personal goal such as Education, Travel, Business, or Emergency Fund. Enter its current estimated cost and timeline; it will be included in the same calculation and feasibility analysis. Each built-in and custom goal can be switched on/off, adjusted with a 1–60 year slider, customised with a cost, and set to monthly or yearly contributions.
+Use **Add custom goal** to add a personal goal such as Education, Travel, Business, or Emergency Fund. Enter its current estimated cost and timeline; it will be included in the same calculation and feasibility analysis. Each built-in and custom goal can be marked Planned or Paused, adjusted with a 1–60 year slider, customised with a cost, and set to monthly or yearly contributions. The inflation and return assumptions also have minimal sliders, starting at the capstone defaults of 6% and 12%.

@@ -12,17 +12,17 @@ This local application helps fresher students estimate the future cost of three 
 
 Future cost:
 
-`future_cost = current_cost * (1 + 0.06) ** years`
+`future_cost = current_cost * (1 + inflation_rate) ** years`
 
 Required monthly investment:
 
-`monthly_rate = 0.12 / 12`
+`monthly_rate = annual_return / 12`
 
 `months = years * 12`
 
 `monthly_investment = future_cost * monthly_rate / ((1 + monthly_rate) ** months - 1)`
 
-The 6% inflation rate and 12% annual return are educational project assumptions, not guarantees.
+The UI defaults to the project assumptions of 6% inflation and 12% annual return. Both can be adjusted for scenario testing; they are educational assumptions, not guarantees.
 
 ## Feasibility rules
 

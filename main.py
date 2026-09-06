@@ -46,6 +46,8 @@ class PlanRequest(BaseModel):
     city: str = Field(min_length=1, max_length=100)
     salary: float = Field(gt=0)
     saving_percentage: float = Field(gt=0, le=100)
+    inflation_rate: float = Field(gt=0, le=20, default=6)
+    annual_return: float = Field(gt=0, le=30, default=12)
     goals: list[GoalRequest] = Field(min_length=1, max_length=12)
 
     @field_validator("name", "city", mode="before")
@@ -53,7 +55,7 @@ class PlanRequest(BaseModel):
     def strip_text(cls, value: object) -> object:
         return value.strip() if isinstance(value, str) else value
 
-    @field_validator("salary", "saving_percentage")
+    @field_validator("salary", "saving_percentage", "inflation_rate", "annual_return")
     @classmethod
     def reject_non_finite_numbers(cls, value: float) -> float:
         if not math.isfinite(value):
@@ -88,9 +90,13 @@ def calculate_goal(city: str, goal: str, years: int) -> dict[str, float]:
     }
 
 
-def calculate_selected_goal(goal: GoalRequest) -> dict[str, float | str | int]:
-    future_cost = engine.calculate_future_cost(goal.current_cost, goal.years)
-    monthly_investment = engine.required_monthly_investment(future_cost, goal.years)
+def calculate_selected_goal(
+    goal: GoalRequest, inflation_rate: float, annual_return: float
+) -> dict[str, float | str | int]:
+    future_cost = goal.current_cost * (1 + inflation_rate / 100) ** goal.years
+    monthly_rate = annual_return / 100 / 12
+    months = goal.years * 12
+    monthly_investment = (future_cost * monthly_rate) / ((1 + monthly_rate) ** months - 1)
     return {
         "name": goal.name,
         "years": goal.years,
@@ -134,7 +140,10 @@ async def default_goals(city: str) -> list[dict[str, str | float]]:
 
 @app.post("/api/v1/plan")
 async def generate_plan(request: PlanRequest):
-    goal_values = [calculate_selected_goal(goal) for goal in request.goals]
+    goal_values = [
+        calculate_selected_goal(goal, request.inflation_rate, request.annual_return)
+        for goal in request.goals
+    ]
     total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
 
     return {
@@ -143,8 +152,8 @@ async def generate_plan(request: PlanRequest):
         "city": request.city,
         "goals": goal_values,
         "assumptions": {
-            "inflation_rate": engine.INFLATION_RATE,
-            "annual_return": engine.ANNUAL_RETURN,
+            "inflation_rate": request.inflation_rate,
+            "annual_return": request.annual_return,
             "area_type": "Central",
         },
         "analysis": engine.feasibility_analysis(

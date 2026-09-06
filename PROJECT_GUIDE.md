@@ -1,0 +1,196 @@
+# Next Gen Financial: Project Guide
+
+## 1. What the project does
+
+Next Gen Financial is a local educational financial-planning application for students and early-career users. A user enters their name, age, city, monthly salary, saving percentage, assumptions, and selected goals. The application reads city costs from `city_goal_costs.csv`, projects each goal into the future, calculates the required investment, and checks whether the user's saving capacity is enough.
+
+The application is intentionally local. It does not require Supabase, a paid API, RAG, an external LLM, or a salary prediction model.
+
+## 2. Project structure
+
+```text
+main.py                         FastAPI routes, request models, and orchestration
+services/calculator.py          CSV loading, city lookup, formulas, feasibility rules
+core/exceptions.py              Domain and reference-data HTTP errors
+static/index.html               Browser structure and form controls
+static/style.css                Visual design and responsive layout
+static/app.js                   Browser state, sliders, goal cards, API calls, results
+city_goal_costs.csv             City and Central-area reference costs
+README.md                       Setup and short project rules
+PROJECT_REPORT.md               Capstone formulas and assumptions
+ARCHITECTURE.md                 DFD and request-flow diagram
+```
+
+## 3. Request flow
+
+1. The browser loads the city list and default goal costs from FastAPI.
+2. The user chooses a city, edits goal costs and timelines, pauses or plans goals, and selects monthly or yearly contribution display.
+3. JavaScript collects only enabled goals and sends JSON to `POST /api/v1/plan`.
+4. Pydantic validates every request field before the calculation runs.
+5. `calculate_selected_goal()` projects each enabled goal and calculates its monthly investment.
+6. `FinancialEngine.feasibility_analysis()` compares the combined monthly requirement to the user's saving capacity.
+7. FastAPI returns deterministic JSON; JavaScript renders the cards, recommendation, and analysis.
+
+## 4. Backend functions and classes
+
+### `GoalRequest` in `main.py`
+
+Defines one enabled goal in an API request. It contains the goal name, current cost, years, and contribution frequency. It limits names to 60 characters, costs to INR 1,000,000,000, timelines to 1–60 years, and frequency to `monthly` or `yearly`.
+
+### `GoalRequest.strip_name()`
+
+Removes leading and trailing whitespace before validating a goal name. A blank name therefore fails the minimum-length rule.
+
+### `GoalRequest.reject_non_finite_cost()`
+
+Rejects `NaN` and infinite costs so invalid numeric values cannot enter the formulas.
+
+### `PlanRequest`
+
+Defines the complete planner request: name, age, city, salary, saving percentage, inflation rate, annual return, and one to twelve goals. Salary is limited to INR 1,000–10,000,000 per month.
+
+### `PlanRequest.strip_text()`
+
+Trims the user's name and city before the request is processed.
+
+### `PlanRequest.reject_non_finite_numbers()`
+
+Rejects non-finite salary, saving percentage, inflation, and return values.
+
+### `PlanRequest.reject_duplicate_goals()`
+
+Prevents two enabled goals from having the same name, ignoring capitalization.
+
+### `validation_exception_handler()`
+
+Converts FastAPI/Pydantic validation errors into a consistent JSON response with a readable `detail` and a list of `{field, message}` objects for the frontend.
+
+### `calculate_goal()`
+
+Legacy helper for looking up a standard CSV goal and calculating it with the original fixed engine assumptions. The current selectable-goal route uses `calculate_selected_goal()` instead.
+
+### `calculate_selected_goal()`
+
+Calculates one selected goal using the user's current cost, timeline, inflation slider, and annual-return slider. It returns current cost, future cost, monthly investment, yearly investment, selected frequency, and the displayed contribution amount.
+
+### `frontend()`
+
+Serves `static/index.html` at `/`.
+
+### `health()`
+
+Returns `{ "status": "ok" }` at `/health` so the local server can be checked quickly.
+
+### `list_cities()`
+
+Returns the unique city names read from the CSV at `/api/v1/cities`.
+
+### `default_goals()`
+
+Returns the five built-in choices for a selected city: Marriage, Home, Education, Vacation / Trip, and Car / Bike. Marriage, Home, and Car / Bike use the city's Central-area CSV costs. Education and Vacation / Trip use local project defaults.
+
+### `generate_plan()`
+
+The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their monthly requirements, runs the feasibility analysis, and returns the complete plan and assumptions.
+
+## 5. Calculation engine functions
+
+### `FinancialEngine.__init__()`
+
+Loads `city_goal_costs.csv` with Pandas and verifies that the required columns exist and contain numeric costs. Invalid or missing reference data raises a clear server error.
+
+### `FinancialEngine.get_current_cost()`
+
+Matches the requested city case-insensitively, selects its `Central` row, and returns the current cost for Marriage, Car, or Home. Unknown cities and unsupported goals raise clear exceptions.
+
+### `FinancialEngine.calculate_future_cost()`
+
+Legacy class method using the default 6% inflation assumption. The selectable plan route applies the user's slider directly in `calculate_selected_goal()`.
+
+### `FinancialEngine.required_monthly_investment()`
+
+Legacy class method using the default 12% return assumption. The selectable plan route applies the user's return slider directly.
+
+### `FinancialEngine.feasibility_analysis()`
+
+Calculates monthly capacity, total required investment, shortfall/surplus, classification, and a recommendation.
+
+Rules:
+
+- Achievable: required amount is within capacity.
+- Challenging: shortfall is no more than 20% of capacity.
+- Highly Challenging: shortfall is greater than 20% of capacity.
+
+## 6. Frontend JavaScript functions
+
+### `goalCard()`
+
+Builds the HTML for one built-in or custom goal card, including its Planned/Paused state, cost, timeline slider, number field, and monthly/yearly selector.
+
+### `connectGoalCard()`
+
+Attaches interactive behavior to a goal card. It keeps the range slider and year number synchronized, updates Planned/Paused text, and removes custom cards when requested.
+
+### `loadGoalOptions()`
+
+Fetches city-specific defaults from `/api/v1/default-goals` and renders the five built-in goal cards.
+
+### `addCustomGoal()`
+
+Adds a new custom goal card, gives it an editable name, and limits custom goals to eight.
+
+### `collectGoals()`
+
+Reads only cards marked Planned, converts cost and timeline values to numbers, and returns the request-ready goal list.
+
+### `renderGoalCards()`
+
+Displays current cost, projected cost, and the chosen monthly/yearly contribution for each result.
+
+### `renderAnalysis()`
+
+Displays the feasibility status, monthly requirement, capacity, difference, and recommendation.
+
+### `showError()`
+
+Converts structured API validation errors into a readable message for the form alert.
+
+### Form submit handler
+
+Prevents a page reload, validates that at least one goal is Planned, converts numeric inputs, posts the plan to FastAPI, and renders the returned results.
+
+### `syncAssumption()`
+
+Updates the visible percentage beside an inflation or annual-return slider.
+
+### Download handler
+
+Serializes the latest returned plan into `financial-dream-plan.json` for local download.
+
+## 7. User-input edge cases
+
+- Salary below INR 1,000: rejected.
+- Salary above INR 10,000,000: rejected.
+- Text, `NaN`, infinity, zero, or negative numeric values: rejected.
+- Age outside 18–100: rejected.
+- Saving percentage outside 0–100: rejected.
+- Inflation outside 0–20%: rejected.
+- Annual return outside 0–30%: rejected.
+- Goal cost outside INR 1,000–1,000,000,000: rejected.
+- Goal timeline outside 1–60 years: rejected.
+- Unsupported contribution frequency: rejected.
+- Duplicate goal names: rejected.
+- No Planned goals: rejected in the browser before calculation.
+- Missing or malformed CSV columns: rejected during startup.
+- Unknown city: returns a clear not-found error.
+
+## 8. Run locally
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Open `http://127.0.0.1:8000` in a desktop browser. API documentation is available at `http://127.0.0.1:8000/docs`.

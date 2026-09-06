@@ -13,6 +13,8 @@ uvicorn main:app --reload
 
 Open `http://127.0.0.1:8000` for the planner UI or `http://127.0.0.1:8000/docs` for the interactive API documentation.
 
+For a complete explanation of the architecture, data flow, formulas, validation, and every backend/frontend function, see [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md).
+
 ## Example request
 
 ```bash

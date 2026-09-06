@@ -52,9 +52,11 @@ class PlanRequest(BaseModel):
     saving_percentage: float = Field(gt=0, le=100)
     inflation_rate: float = Field(gt=0, le=20, default=6)
     annual_return: float = Field(gt=0, le=30, default=12)
+    education: str | None = Field(default=None, max_length=100)
+    job_role: str | None = Field(default=None, max_length=100)
     goals: list[GoalRequest] = Field(min_length=1, max_length=12)
 
-    @field_validator("name", "city", mode="before")
+    @field_validator("name", "city", "education", "job_role", mode="before")
     @classmethod
     def strip_text(cls, value: object) -> object:
         return value.strip() if isinstance(value, str) else value
@@ -193,6 +195,21 @@ async def generate_plan(request: PlanRequest):
         request.salary, request.saving_percentage, total_monthly_investment
     )
 
+    suggestion_plan = build_suggestion_plan(goal_values, analysis, request.age)
+    if request.education and request.job_role and MODEL_ARTIFACT.exists():
+        suggestion_plan["model_insight"] = {
+            "available": True,
+            **predict_salary(
+            MODEL_ARTIFACT,
+            {"City": request.city, "Education": request.education, "Job_Role": request.job_role},
+            ),
+        }
+    else:
+        suggestion_plan["model_insight"] = {
+            "available": False,
+            "message": "Optional model insight needs Education and Job role, plus a trained local model.",
+        }
+
     return {
         "user": request.name,
         "age": request.age,
@@ -204,5 +221,5 @@ async def generate_plan(request: PlanRequest):
             "area_type": "Central",
         },
         "analysis": analysis,
-        "suggestion_plan": build_suggestion_plan(goal_values, analysis, request.age),
+        "suggestion_plan": suggestion_plan,
     }

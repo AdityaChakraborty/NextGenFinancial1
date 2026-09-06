@@ -14,6 +14,7 @@ const annualReturn = document.querySelector('#annual-return');
 const money = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
 let latestPlan = null;
 let customGoalCount = 0;
+let investmentState = [];
 
 function goalCard(goal, index, custom = false) {
   const enabled = custom || ['Marriage', 'Home', 'Car / Bike'].includes(goal.name);
@@ -98,9 +99,54 @@ function renderSuggestionPlan(plan) {
   document.querySelector('#priority-action').textContent = plan.action;
   document.querySelector('#horizon-note').textContent = plan.horizon_note;
   document.querySelector('#suggestion-steps').innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join('');
-  document.querySelector('#investment-options').innerHTML = plan.investment_options.map((option) => `
-    <article class="investment-card"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><div class="option-amounts"><b>${money.format(option.monthly_amount)}<small>/ month</small></b><b>${money.format(option.yearly_amount)}<small>/ year</small></b></div><p>Goal value: ${money.format(option.goal_amount)} in ${option.years} years.</p><p>Modeled growth: ${money.format(option.projected_growth)} at ${option.annual_return}% p.a.</p><p>${option.note}</p></article>
+  investmentState = plan.investment_options.map((option) => ({ ...option, selected_monthly: option.monthly_amount }));
+  document.querySelector('#investment-options').innerHTML = investmentState.map((option, index) => `
+    <article class="investment-card" data-investment-index="${index}"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><div class="option-amounts"><b class="option-monthly">${money.format(option.monthly_amount)}<small>/ month</small></b><b class="option-yearly">${money.format(option.yearly_amount)}<small>/ year</small></b></div><div class="amount-adjuster"><button class="amount-step" data-change="-1" type="button" aria-label="Decrease ${option.name} amount">−</button><input class="amount-slider" type="range" min="${Math.max(100, Math.round(option.monthly_amount * 0.25))}" max="${Math.round(option.monthly_amount * 3)}" step="100" value="${option.monthly_amount}" aria-label="Monthly ${option.name} investment"><button class="amount-step" data-change="1" type="button" aria-label="Increase ${option.name} amount">+</button></div><p class="option-projection"></p><p>${option.note}</p></article>
   `).join('');
+  document.querySelectorAll('.investment-card').forEach((card) => {
+    card.querySelector('.amount-slider').addEventListener('input', (event) => updateInvestmentOption(card, Number(event.target.value)));
+    card.querySelectorAll('.amount-step').forEach((button) => button.addEventListener('click', () => {
+      const slider = card.querySelector('.amount-slider');
+      updateInvestmentOption(card, Number(slider.value) + Number(button.dataset.change) * Number(slider.step));
+    }));
+    updateInvestmentOption(card, Number(card.querySelector('.amount-slider').value));
+  });
+  const insight = document.querySelector('#model-insight');
+  const insightText = document.querySelector('#model-insight-text');
+  insight.hidden = false;
+  insightText.textContent = plan.model_insight.available
+    ? `The ${plan.model_insight.model} model estimates ${money.format(plan.model_insight.predicted_monthly_salary)} per month from the optional profile. This is a benchmark only; the planner always uses your entered salary.`
+    : plan.model_insight.message;
+}
+
+function updateInvestmentOption(card, amount) {
+  const index = Number(card.dataset.investmentIndex);
+  const option = investmentState[index];
+  const slider = card.querySelector('.amount-slider');
+  slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), amount));
+  option.selected_monthly = Number(slider.value);
+  const rate = option.annual_return / 100 / 12;
+  const months = option.years * 12;
+  const projectedValue = option.selected_monthly * (((1 + rate) ** months - 1) / rate);
+  const yearly = option.selected_monthly * 12;
+  const gap = option.goal_amount - projectedValue;
+  card.querySelector('.option-monthly').innerHTML = `${money.format(option.selected_monthly)}<small>/ month</small>`;
+  card.querySelector('.option-yearly').innerHTML = `${money.format(yearly)}<small>/ year</small>`;
+  card.querySelector('.option-projection').textContent = gap > 0
+    ? `Projected value ${money.format(projectedValue)} • Gap ${money.format(gap)}`
+    : `Projected value ${money.format(projectedValue)} • Surplus ${money.format(Math.abs(gap))}`;
+  updateInvestmentTotals();
+}
+
+function updateInvestmentTotals() {
+  const monthly = investmentState.reduce((total, option) => total + option.selected_monthly, 0);
+  const projected = investmentState.reduce((total, option) => {
+    const rate = option.annual_return / 100 / 12;
+    return total + option.selected_monthly * (((1 + rate) ** (option.years * 12) - 1) / rate);
+  }, 0);
+  document.querySelector('#investment-total-monthly').textContent = `${money.format(monthly)} / month`;
+  document.querySelector('#investment-total-projected').textContent = money.format(projected);
+  document.querySelector('#investment-total-note').textContent = 'This total assumes the selected amount is allocated to every option card; compare options individually before investing.';
 }
 
 function showError(data) {

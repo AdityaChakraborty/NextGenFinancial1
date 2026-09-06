@@ -57,6 +57,14 @@
             <span>Monthly saving goal <small>%</small></span>
             <input name="saving_percentage" type="number" min="1" max="100" step="1" value="30" required>
           </label>
+          <label class="field">
+            <span>Education <small>optional model input</small></span>
+            <input name="education" type="text" maxlength="100" placeholder="e.g. B.E. / MBA">
+          </label>
+          <label class="field">
+            <span>Job role <small>optional model input</small></span>
+            <input name="job_role" type="text" maxlength="100" placeholder="e.g. Software Engineer">
+          </label>
         </div>
 
         <div class="assumptions-heading">
@@ -132,7 +140,8 @@
           <article class="focus-panel"><p class="eyebrow">Priority</p><p id="priority-focus"></p><p id="priority-action"></p><p id="horizon-note"></p></article>
           <article class="steps-panel"><p class="eyebrow">Three useful moves</p><ol id="suggestion-steps"></ol></article>
         </div>
-        <div class="investment-panel"><div><p class="eyebrow">Explore investment options</p><p class="investment-disclaimer">Amounts below are modeled to reach the selected priority goal. Educational overview only; returns are not guaranteed.</p></div><div id="investment-options" class="investment-grid"></div></div>
+        <div class="investment-panel"><div><p class="eyebrow">Explore investment options</p><p class="investment-disclaimer">Adjust each option to compare contribution amounts. Projected values are scenarios, not guaranteed returns.</p></div><div id="investment-options" class="investment-grid"></div><div class="investment-total"><span>Selected portfolio total</span><strong id="investment-total-monthly"></strong><span>Projected value across selected options</span><strong id="investment-total-projected"></strong><p id="investment-total-note"></p></div></div>
+        <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Optional model insight</p><p id="model-insight-text"></p></div>
       </section>
     </div>
   </section>

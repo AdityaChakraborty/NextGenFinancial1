@@ -57,6 +57,8 @@ The UI also loads the available cities from the API, validates input with readab
 
 After calculation, the separate suggestion section identifies the nearest goal to focus on, gives improvement actions based on Achievable/Challenging/Highly Challenging status, and explains mutual funds, gold, stocks, and real estate as broad educational options with risk and liquidity considerations.
 
+Each investment option has a decrease/increase control and slider. Changing an amount recalculates its projected future value, gap or surplus, and the selected portfolio total. Optional Education and Job role fields activate the locally trained model insight; this prediction is a benchmark and never replaces the user's entered salary.
+
 Monthly salary must be a numeric value from INR 1,000 to INR 1,00,00,000. Other numeric inputs are also validated for positive values, supported ranges, and finite numbers.
 
 Use **Add custom goal** to add a personal goal such as Education, Travel, Business, or Emergency Fund. Enter its current estimated cost and timeline; it will be included in the same calculation and feasibility analysis. Each built-in and custom goal can be marked Planned or Paused, adjusted with a 1–60 year slider, customised with a cost, and set to monthly or yearly contributions. The inflation and return assumptions also have minimal sliders, starting at the capstone defaults of 6% and 12%.

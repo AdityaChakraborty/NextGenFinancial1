@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plan the monthly investment needed for your biggest life goals.">
+  <title>Northstar | Financial Dream Planner</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <main class="shell">
+    <section class="intro" aria-labelledby="page-title">
+      <div class="brand-mark" aria-hidden="true">N</div>
+      <p class="eyebrow">Personal finance, made tangible</p>
+      <h1 id="page-title">Give your future<br><em>a clear number.</em></h1>
+      <p class="intro-copy">A local educational simulation for fresher students. Map the cost of your next chapter and see the monthly investment that gets you there.</p>
+      <div class="signal-list" aria-label="Planner assumptions">
+        <span><b>06%</b> inflation model</span>
+        <span><b>12%</b> annual return assumption</span>
+      </div>
+    </section>
+
+    <section class="planner-panel" aria-labelledby="form-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">Build your plan</p>
+          <h2 id="form-title">Your starting point</h2>
+        </div>
+        <span class="step-indicator">01 <i>/</i> 01</span>
+      </div>
+
+      <form id="planner-form">
+        <div class="form-grid">
+          <label class="field">
+            <span>Your name</span>
+            <input name="name" type="text" placeholder="e.g. Asha Mehta" required maxlength="100">
+          </label>
+          <label class="field">
+            <span>Your age</span>
+            <input name="age" type="number" min="18" max="100" placeholder="22" required>
+          </label>
+          <label class="field">
+            <span>City</span>
+            <select name="city" required>
+              <option value="" selected disabled>Choose a city</option>
+              <option>Ahmedabad</option><option>Bangalore</option><option>Chennai</option>
+              <option>Delhi</option><option>Hyderabad</option><option>Jaipur</option>
+              <option>Kolkata</option><option>Lucknow</option><option>Mumbai</option><option>Pune</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Monthly salary <small>INR</small></span>
+            <input name="salary" type="number" min="1" step="1000" placeholder="120000" required>
+          </label>
+          <label class="field">
+            <span>Monthly saving goal <small>%</small></span>
+            <input name="saving_percentage" type="number" min="1" max="100" step="1" value="30" required>
+          </label>
+        </div>
+
+        <div class="goals-heading">
+          <div>
+            <p class="eyebrow">Your milestones</p>
+            <h3>When will you need it?</h3>
+          </div>
+          <p class="helper">Set a timeline for each goal.</p>
+        </div>
+        <div class="goal-grid">
+          <label class="goal-field marriage">
+            <span class="goal-icon" aria-hidden="true">01</span>
+            <span class="goal-name">Marriage</span>
+            <span class="goal-input"><input name="years_to_marriage" type="number" min="1" max="60" value="5" required><small>years</small></span>
+          </label>
+          <label class="goal-field car">
+            <span class="goal-icon" aria-hidden="true">02</span>
+            <span class="goal-name">Car</span>
+            <span class="goal-input"><input name="years_to_car" type="number" min="1" max="60" value="3" required><small>years</small></span>
+          </label>
+          <label class="goal-field home">
+            <span class="goal-icon" aria-hidden="true">03</span>
+            <span class="goal-name">Home</span>
+            <span class="goal-input"><input name="years_to_home" type="number" min="1" max="60" value="10" required><small>years</small></span>
+          </label>
+        </div>
+
+        <button class="primary-button" type="submit">
+          <span>Build my plan</span><span class="button-arrow" aria-hidden="true">&#8594;</span>
+        </button>
+        <p id="form-message" class="form-message" role="alert"></p>
+      </form>
+    </section>
+  </main>
+
+  <section id="results" class="results-shell" aria-live="polite" hidden>
+    <div class="results-inner">
+      <div class="results-header">
+        <div>
+          <p class="eyebrow">Your northstar plan</p>
+          <h2>Here is the shape of your future.</h2>
+        </div>
+        <button id="reset-button" class="text-button" type="button">Edit inputs <span>&#8593;</span></button>
+      </div>
+      <div id="goal-results" class="result-grid"></div>
+      <p class="results-note">Educational simulation only. Costs, inflation and return assumptions do not guarantee future outcomes.</p>
+      <div class="analysis-band">
+        <div>
+          <p class="eyebrow">Monthly reality check</p>
+          <p id="analysis-status" class="analysis-status"></p>
+        </div>
+        <div class="analysis-numbers">
+          <div><span>Required each month</span><strong id="required-total"></strong></div>
+          <div><span>Your capacity</span><strong id="monthly-capacity"></strong></div>
+          <div><span>Difference</span><strong id="difference"></strong></div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <script src="/static/app.js" defer></script>
+</body>
+</html>

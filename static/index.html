@@ -50,7 +50,7 @@
           </label>
           <label class="field">
             <span>Monthly salary <small>INR</small></span>
-            <input name="salary" type="number" min="1" step="1000" placeholder="120000" required>
+            <input name="salary" type="number" min="1000" step="1000" placeholder="120000" required>
           </label>
           <label class="field">
             <span>Monthly saving goal <small>%</small></span>
@@ -82,6 +82,15 @@
             <span class="goal-input"><input name="years_to_home" type="number" min="1" max="60" value="10" required><small>years</small></span>
           </label>
         </div>
+
+        <div class="custom-goals-heading">
+          <div>
+            <p class="eyebrow">Make it yours</p>
+            <h3>Have another dream?</h3>
+          </div>
+          <button id="add-goal-button" class="secondary-button" type="button">+ Add custom goal</button>
+        </div>
+        <div id="custom-goals" class="custom-goals" aria-live="polite"></div>
 
         <button class="primary-button" type="submit">
           <span>Build my plan</span><span class="button-arrow" aria-hidden="true">&#8594;</span>

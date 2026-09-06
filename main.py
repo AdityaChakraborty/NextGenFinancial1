@@ -5,7 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from services.calculator import FinancialEngine
 
@@ -21,6 +21,24 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 
+class CustomGoal(BaseModel):
+    name: str = Field(min_length=1, max_length=60)
+    current_cost: float = Field(gt=0)
+    years: int = Field(gt=0, le=60)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def strip_name(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("current_cost")
+    @classmethod
+    def reject_non_finite_cost(cls, value: float) -> float:
+        if not math.isfinite(value):
+            raise ValueError("must be a finite number")
+        return value
+
+
 class PlanRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     age: int = Field(ge=18, le=100)
@@ -30,6 +48,7 @@ class PlanRequest(BaseModel):
     years_to_marriage: int = Field(gt=0, le=60)
     years_to_car: int = Field(gt=0, le=60)
     years_to_home: int = Field(gt=0, le=60)
+    custom_goals: list[CustomGoal] = Field(default_factory=list, max_length=8)
 
     @field_validator("name", "city", mode="before")
     @classmethod
@@ -42,6 +61,13 @@ class PlanRequest(BaseModel):
         if not math.isfinite(value):
             raise ValueError("must be a finite number")
         return value
+
+    @model_validator(mode="after")
+    def reject_duplicate_custom_goals(self):
+        names = [goal.name.casefold() for goal in self.custom_goals]
+        if len(names) != len(set(names)):
+            raise ValueError("custom goal names must be unique")
+        return self
 
 
 @app.exception_handler(RequestValidationError)
@@ -59,6 +85,18 @@ def calculate_goal(city: str, goal: str, years: int) -> dict[str, float]:
     monthly_investment = engine.required_monthly_investment(future_cost, years)
     return {
         "current_cost": round(current_cost, 2),
+        "future_cost": round(future_cost, 2),
+        "monthly_sip": round(monthly_investment, 2),
+    }
+
+
+def calculate_custom_goal(goal: CustomGoal) -> dict[str, float | str | int]:
+    future_cost = engine.calculate_future_cost(goal.current_cost, goal.years)
+    monthly_investment = engine.required_monthly_investment(future_cost, goal.years)
+    return {
+        "name": goal.name,
+        "years": goal.years,
+        "current_cost": round(goal.current_cost, 2),
         "future_cost": round(future_cost, 2),
         "monthly_sip": round(monthly_investment, 2),
     }
@@ -84,13 +122,16 @@ async def generate_plan(request: PlanRequest):
     marriage = calculate_goal(request.city, "Marriage", request.years_to_marriage)
     car = calculate_goal(request.city, "Car", request.years_to_car)
     home = calculate_goal(request.city, "Home", request.years_to_home)
-    total_monthly_investment = marriage["monthly_sip"] + car["monthly_sip"] + home["monthly_sip"]
+    custom_goals = [calculate_custom_goal(goal) for goal in request.custom_goals]
+    goal_values = [marriage, car, home, *custom_goals]
+    total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
 
     return {
         "user": request.name,
         "age": request.age,
         "city": request.city,
         "goals": {"marriage": marriage, "car": car, "home": home},
+        "custom_goals": custom_goals,
         "assumptions": {
             "inflation_rate": engine.INFLATION_RATE,
             "annual_return": engine.ANNUAL_RETURN,

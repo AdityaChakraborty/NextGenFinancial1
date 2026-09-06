@@ -52,6 +52,18 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .goal-input input { min-height: auto; width: 44px; padding: 0; border: 0; background: transparent; font: 700 24px 'Manrope', sans-serif; }
 .goal-input input:focus { box-shadow: none; }
 .goal-input small { color: var(--muted); font: 10px 'DM Mono', monospace; }
+.custom-goals-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 36px 0 16px; }
+.custom-goals-heading h3 { margin: 0; font-size: 17px; }
+.secondary-button { border: 1px solid var(--green); padding: 10px 13px; color: var(--green); background: transparent; cursor: pointer; font: 700 11px 'Manrope', sans-serif; }
+.secondary-button:hover { color: var(--cream); background: var(--green); }
+.custom-goals { display: grid; gap: 10px; }
+.custom-goal-row { display: grid; grid-template-columns: 1.2fr 1fr .7fr auto; gap: 10px; align-items: end; padding: 13px; border: 1px dashed var(--line); background: #f5f7f1; }
+.custom-goal-row label { display: flex; flex-direction: column; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 700; }
+.custom-goal-row input { min-height: 40px; }
+.custom-goal-row small { color: var(--green); font: 10px 'DM Mono', monospace; }
+.inline-input { display: flex; align-items: center; gap: 5px; }
+.inline-input input { width: 70px; }
+.remove-goal { width: 32px; height: 40px; border: 0; color: #b54c32; background: transparent; cursor: pointer; font-size: 22px; }
 .primary-button { display: flex; justify-content: space-between; align-items: center; width: 100%; min-height: 56px; margin-top: 28px; padding: 0 20px 0 23px; border: 0; color: var(--cream); background: var(--green); cursor: pointer; font: 700 13px 'Manrope', sans-serif; transition: background .2s, transform .2s; }
 .primary-button:hover { background: var(--green-dark); transform: translateY(-2px); }
 .button-arrow { font-size: 22px; font-weight: 400; }
@@ -86,3 +98,4 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 850px) { .shell { grid-template-columns: 1fr; min-height: auto; padding-top: 42px; } .brand-mark { margin-bottom: 45px; } .intro-copy { margin-bottom: 30px; } .planner-panel { padding: 28px 22px; } }
 @media (max-width: 600px) { .shell, .results-shell { padding-left: 20px; padding-right: 20px; } h1 { font-size: 46px; } .form-grid, .goal-grid, .result-grid { grid-template-columns: 1fr; } .goal-field { min-height: 75px; } .analysis-band, .analysis-numbers { flex-direction: column; } .analysis-band { gap: 26px; } .results-header { align-items: flex-start; flex-direction: column; } }
+@media (max-width: 600px) { .custom-goals-heading { align-items: flex-start; flex-direction: column; } .custom-goal-row { grid-template-columns: 1fr; } .remove-goal { justify-self: end; } }

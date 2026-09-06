@@ -1,5 +1,6 @@
 from pathlib import Path
 import math
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -9,10 +10,12 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from services.calculator import FinancialEngine
 from services.recommendations import build_suggestion_plan
+from ml_models.salary_predictor import predict_salary
 
 
 BASE_DIR = Path(__file__).resolve().parent
 engine = FinancialEngine(BASE_DIR / "city_goal_costs.csv")
+MODEL_ARTIFACT = BASE_DIR / "artifacts" / "salary_predictor.joblib"
 
 app = FastAPI(
     title="Next Gen Financial",
@@ -69,6 +72,17 @@ class PlanRequest(BaseModel):
         if len(names) != len(set(names)):
             raise ValueError("goal names must be unique")
         return self
+
+
+class SalaryPredictionRequest(BaseModel):
+    city: str = Field(min_length=1, max_length=100)
+    education: str = Field(min_length=1, max_length=100)
+    job_role: str = Field(min_length=1, max_length=100)
+
+    @field_validator("city", "education", "job_role", mode="before")
+    @classmethod
+    def strip_profile_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
 
 
 @app.exception_handler(RequestValidationError)
@@ -137,6 +151,35 @@ async def default_goals(city: str) -> list[dict[str, str | float]]:
         {"name": "Vacation / Trip", "current_cost": 200000},
         {"name": "Car / Bike", "current_cost": engine.get_current_cost(city, "Car")},
     ]
+
+
+@app.get("/api/v1/ml/status")
+async def ml_status() -> dict[str, Any]:
+    if not MODEL_ARTIFACT.exists():
+        return {"available": False, "message": "Run python train_model.py to create the local model."}
+    import joblib
+
+    artifact = joblib.load(MODEL_ARTIFACT)
+    return {
+        "available": True,
+        "selected_model": artifact["selected_model"],
+        "features": artifact["features"],
+        "data_report": artifact["data_report"],
+        "reports": artifact["reports"],
+    }
+
+
+@app.post("/api/v1/ml/predict-salary")
+async def predict_salary_endpoint(request: SalaryPredictionRequest) -> dict[str, Any]:
+    if not MODEL_ARTIFACT.exists():
+        return JSONResponse(
+            status_code=503,
+            content={"detail": "Local model is not trained. Run python train_model.py first."},
+        )
+    return predict_salary(
+        MODEL_ARTIFACT,
+        {"City": request.city, "Education": request.education, "Job_Role": request.job_role},
+    )
 
 
 @app.post("/api/v1/plan")

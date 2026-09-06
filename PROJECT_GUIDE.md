@@ -6,6 +6,8 @@ Next Gen Financial is a local educational financial-planning application for stu
 
 The application is intentionally local. It does not require Supabase, a paid API, RAG, an external LLM, or a salary prediction model.
 
+The optional ML experiment is isolated from the planner. `salary_data.csv` is cleaned by the data pipeline, `Age` is removed from model features to reduce demographic profiling, categorical fields are one-hot encoded, numeric fields are scaled, and three candidates are compared with cross-validation. The selected artifact is used only by the ML endpoints.
+
 ## 2. Project structure
 
 ```text
@@ -17,6 +19,10 @@ static/index.html               Browser structure and form controls
 static/style.css                Visual design and responsive layout
 static/app.js                   Browser state, sliders, goal cards, API calls, results
 city_goal_costs.csv             City and Central-area reference costs
+salary_data.csv                 Optional training data for salary modeling
+data_pipeline/preprocess.py     Cleaning, bias reduction, and feature preparation
+ml_models/salary_predictor.py   Model comparison, training, evaluation, and inference
+train_model.py                  Reproducible training command
 README.md                       Setup and short project rules
 PROJECT_REPORT.md               Capstone formulas and assumptions
 ARCHITECTURE.md                 DFD and request-flow diagram
@@ -93,6 +99,10 @@ Returns the five built-in choices for a selected city: Marriage, Home, Education
 ### `generate_plan()`
 
 The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their monthly requirements, runs the feasibility analysis, and returns the complete plan and assumptions.
+
+### `ml_status()` and `predict_salary_endpoint()`
+
+Optional endpoints that report the trained model and predict monthly salary from city, education, and job role. They are deliberately separate from `/api/v1/plan`, because the project requirement is that salary is provided directly by the user.
 
 ## 4.1 Recommendation functions
 

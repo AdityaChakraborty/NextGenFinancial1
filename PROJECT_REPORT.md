@@ -42,3 +42,23 @@ Users may add up to eight custom goals. Each custom goal has a name, current est
 The app is fully local. It does not use Supabase, paid APIs, RAG, an external LLM, or a salary model. The optional Agentic AI component is intentionally not included in this basic implementation.
 
 This is an educational financial-planning simulation, not professional financial advice.
+
+## Optional ML experiment
+
+The project also includes an isolated salary-prediction experiment. It is not used to replace the user's directly entered salary in the planner.
+
+### Data preparation
+
+The pipeline removes the empty trailing CSV column, duplicate rows, invalid target rows, and unused columns. `Age` is removed from model features to reduce demographic profiling. The remaining `City`, `Education`, and `Job_Role` values are treated as categorical features and one-hot encoded. Numeric features, if added later, are standardized. Unknown categories are handled without crashing inference.
+
+### Model selection
+
+The training command compares Extra Trees, Random Forest, and an `MLPRegressor` neural-network baseline using five-fold cross-validated mean absolute error. On the supplied 100-row dataset, the measured result was:
+
+| Model | Cross-validated MAE | Test MAE | Test R2 |
+| --- | ---: | ---: | ---: |
+| Extra Trees | 24,175.88 | 35,267.87 | -1.20 |
+| Random Forest | 21,976.66 | 29,700.64 | -0.66 |
+| MLP neural network | 57,924.45 | 60,849.62 | -5.15 |
+
+Random Forest was selected because it had the lowest cross-validated MAE. The negative test R2 and small dataset mean this is a demonstration model, not a reliable salary benchmark. More representative data and stronger validation would be required before real use.

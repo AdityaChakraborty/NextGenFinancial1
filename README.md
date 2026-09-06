@@ -43,6 +43,16 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
 
 The application is fully local and uses `city_goal_costs.csv` as its only reference dataset. No Supabase, paid API, RAG, salary prediction, or ML training is required.
 
+## Optional ML experiment
+
+The planner intentionally uses the user's salary directly. The optional salary model is for experimentation and demonstration only:
+
+```bash
+python train_model.py --data salary_data.csv --artifact artifacts/salary_predictor.joblib
+```
+
+The training pipeline cleans the supplied data, removes the empty trailing column and `Age`, compares Extra Trees, Random Forest, and an MLP neural-network baseline, and saves the model with the lowest cross-validated mean absolute error. Check `/api/v1/ml/status` or call `/api/v1/ml/predict-salary` with `City`, `Education`, and `Job_Role` after training. A prediction never replaces the salary entered into the financial planner.
+
 The UI also loads the available cities from the API, validates input with readable field-level errors, provides a next-step recommendation, and lets the user download the generated plan as JSON.
 
 After calculation, the separate suggestion section identifies the nearest goal to focus on, gives improvement actions based on Achievable/Challenging/Highly Challenging status, and explains mutual funds, gold, stocks, and real estate as broad educational options with risk and liquidity considerations.

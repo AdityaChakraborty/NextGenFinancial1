@@ -33,6 +33,8 @@ The 6% inflation rate and 12% annual return are educational project assumptions,
 
 The interface always shows the required amount, available capacity, and shortfall or surplus.
 
+The planner also gives a rule-based next-step recommendation and supports downloading the deterministic result as a JSON file for local record keeping.
+
 ## Scope
 
 The app is fully local. It does not use Supabase, paid APIs, RAG, an external LLM, or a salary model. The optional Agentic AI component is intentionally not included in this basic implementation.

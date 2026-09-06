@@ -3,6 +3,8 @@ const results = document.querySelector('#results');
 const message = document.querySelector('#form-message');
 const goalResults = document.querySelector('#goal-results');
 const resetButton = document.querySelector('#reset-button');
+const downloadButton = document.querySelector('#download-button');
+let latestPlan = null;
 
 const money = new Intl.NumberFormat('en-IN', {
   style: 'currency',
@@ -36,6 +38,14 @@ function renderAnalysis(analysis) {
   document.querySelector('#monthly-capacity').textContent = money.format(analysis.monthly_capacity);
   const difference = analysis.shortfall > 0 ? analysis.shortfall : analysis.surplus;
   document.querySelector('#difference').textContent = `${analysis.shortfall > 0 ? '-' : '+'}${money.format(difference)}`;
+  document.querySelector('#recommendation').textContent = analysis.recommendation;
+}
+
+function showError(data) {
+  if (Array.isArray(data.errors)) {
+    return data.errors.map((error) => `${error.field}: ${error.message}`).join(' ');
+  }
+  return data.detail || 'Could not build your plan.';
 }
 
 form.addEventListener('submit', async (event) => {
@@ -56,7 +66,8 @@ form.addEventListener('submit', async (event) => {
       body: JSON.stringify(values),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.detail || 'Could not build your plan.');
+    if (!response.ok) throw new Error(showError(data));
+    latestPlan = data;
     renderGoalCards(data.goals);
     renderAnalysis(data.analysis);
     results.hidden = false;
@@ -73,3 +84,25 @@ resetButton.addEventListener('click', () => {
   results.hidden = true;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+downloadButton.addEventListener('click', () => {
+  if (!latestPlan) return;
+  const file = new Blob([JSON.stringify(latestPlan, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(file);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'financial-dream-plan.json';
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+fetch('/api/v1/cities')
+  .then((response) => response.ok ? response.json() : Promise.reject(new Error('Cities unavailable')))
+  .then((cities) => {
+    const citySelect = document.querySelector('select[name="city"]');
+    citySelect.innerHTML = '<option value="" selected disabled>Choose a city</option>';
+    cities.forEach((city) => citySelect.add(new Option(city, city)));
+  })
+  .catch(() => {
+    message.textContent = 'Could not load cities. Please restart the local server.';
+  });

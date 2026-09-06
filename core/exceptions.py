@@ -30,3 +30,8 @@ class UnrealisticGoalException(PlannerException):
 class DataPipelineException(PlannerException):
     def __init__(self, message: str):
         super().__init__(detail=message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class InvalidReferenceDataException(PlannerException):
+    def __init__(self, message: str):
+        super().__init__(detail=message, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

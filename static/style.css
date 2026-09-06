@@ -80,6 +80,9 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .analysis-numbers div { display: flex; flex-direction: column; gap: 7px; }
 .analysis-numbers span { color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 .analysis-numbers strong { font-size: 17px; }
+.recommendation-band { margin-top: 12px; padding: 22px 24px; border: 1px solid rgba(201, 231, 209, .25); background: rgba(251, 252, 247, .05); }
+.recommendation-band .eyebrow { margin-bottom: 8px; }
+.recommendation-band p:not(.eyebrow) { max-width: 720px; margin-bottom: 18px; color: rgba(251, 252, 247, .86); font-size: 14px; line-height: 1.6; }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 850px) { .shell { grid-template-columns: 1fr; min-height: auto; padding-top: 42px; } .brand-mark { margin-bottom: 45px; } .intro-copy { margin-bottom: 30px; } .planner-panel { padding: 28px 22px; } }
 @media (max-width: 600px) { .shell, .results-shell { padding-left: 20px; padding-right: 20px; } h1 { font-size: 46px; } .form-grid, .goal-grid, .result-grid { grid-template-columns: 1fr; } .goal-field { min-height: 75px; } .analysis-band, .analysis-numbers { flex-direction: column; } .analysis-band { gap: 26px; } .results-header { align-items: flex-start; flex-direction: column; } }

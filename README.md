@@ -39,3 +39,5 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
 - This is an educational simulation, not professional financial advice.
 
 The application is fully local and uses `city_goal_costs.csv` as its only reference dataset. No Supabase, paid API, RAG, salary prediction, or ML training is required.
+
+The UI also loads the available cities from the API, validates input with readable field-level errors, provides a next-step recommendation, and lets the user download the generated plan as JSON.

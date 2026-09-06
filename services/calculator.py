@@ -2,23 +2,46 @@ from pathlib import Path
 
 import pandas as pd
 
-from core.exceptions import InvalidCityException, InvalidGoalException, UnrealisticGoalException
+from core.exceptions import (
+    InvalidCityException,
+    InvalidGoalException,
+    InvalidReferenceDataException,
+    UnrealisticGoalException,
+)
 
 
 class FinancialEngine:
     INFLATION_RATE = 0.06
     ANNUAL_RETURN = 0.12
     GOALS = ("Marriage", "Car", "Home")
+    REQUIRED_COLUMNS = {
+        "City", "Area_Type", "Marriage_Cost_Current", "Car_Cost_Current", "Home_Cost_Current"
+    }
 
     def __init__(self, costs_file: str | Path = "city_goal_costs.csv"):
-        self.city_data = pd.read_csv(costs_file)
+        try:
+            self.city_data = pd.read_csv(costs_file)
+        except (OSError, pd.errors.ParserError) as error:
+            raise InvalidReferenceDataException(
+                f"Could not read the city reference dataset: {error}"
+            ) from error
+
+        missing_columns = self.REQUIRED_COLUMNS.difference(self.city_data.columns)
+        if missing_columns:
+            missing = ", ".join(sorted(missing_columns))
+            raise InvalidReferenceDataException(f"City reference data is missing: {missing}.")
+
+        for column in ("Marriage_Cost_Current", "Car_Cost_Current", "Home_Cost_Current"):
+            if pd.to_numeric(self.city_data[column], errors="coerce").isna().any():
+                raise InvalidReferenceDataException(f"City reference data has invalid values in {column}.")
 
     def get_current_cost(self, city: str, goal: str) -> float:
         if goal not in self.GOALS:
             raise InvalidGoalException(goal)
 
+        normalized_city = city.strip().casefold()
         city_rows = self.city_data[
-            self.city_data["City"].astype(str).str.casefold() == city.casefold()
+            self.city_data["City"].astype(str).str.strip().str.casefold() == normalized_city
         ]
         if city_rows.empty:
             raise InvalidCityException(city)
@@ -57,10 +80,18 @@ class FinancialEngine:
         else:
             feasibility_status = "Highly Challenging"
 
+        if feasibility_status == "Achievable":
+            recommendation = "Your planned saving capacity covers the combined monthly target. Keep an emergency buffer alongside these goals."
+        elif feasibility_status == "Challenging":
+            recommendation = "You are close to the target. Consider increasing savings slightly or extending the shortest timeline."
+        else:
+            recommendation = "The target is currently above your saving capacity. Extend timelines, increase savings gradually, or prioritize one goal first."
+
         return {
             "monthly_capacity": round(monthly_capacity, 2),
             "total_required": round(required_monthly, 2),
             "shortfall": round(max(0, shortfall), 2),
             "surplus": round(abs(min(0, shortfall)), 2),
             "status": feasibility_status,
+            "recommendation": recommendation,
         }

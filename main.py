@@ -1,9 +1,11 @@
 from pathlib import Path
+import math
 
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from services.calculator import FinancialEngine
 
@@ -28,6 +30,27 @@ class PlanRequest(BaseModel):
     years_to_marriage: int = Field(gt=0, le=60)
     years_to_car: int = Field(gt=0, le=60)
     years_to_home: int = Field(gt=0, le=60)
+
+    @field_validator("name", "city", mode="before")
+    @classmethod
+    def strip_text(cls, value: object) -> object:
+        return value.strip() if isinstance(value, str) else value
+
+    @field_validator("salary", "saving_percentage")
+    @classmethod
+    def reject_non_finite_numbers(cls, value: float) -> float:
+        if not math.isfinite(value):
+            raise ValueError("must be a finite number")
+        return value
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    errors = []
+    for error in exc.errors():
+        location = ".".join(str(part) for part in error["loc"] if part != "body")
+        errors.append({"field": location or "request", "message": error["msg"]})
+    return JSONResponse(status_code=422, content={"detail": "Please correct the highlighted fields.", "errors": errors})
 
 
 def calculate_goal(city: str, goal: str, years: int) -> dict[str, float]:

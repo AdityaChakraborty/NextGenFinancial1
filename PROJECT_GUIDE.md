@@ -24,6 +24,7 @@ data_pipeline/preprocess.py     Cleaning, bias reduction, and feature preparatio
 ml_models/salary_predictor.py   Model comparison, training, evaluation, and inference
 train_model.py                  Reproducible training command
 README.md                       Setup and short project rules
+DEMO_GUIDE.md                   Presentation script and explanation notes
 PROJECT_REPORT.md               Capstone formulas and assumptions
 ARCHITECTURE.md                 DFD and request-flow diagram
 ```
@@ -39,6 +40,10 @@ ARCHITECTURE.md                 DFD and request-flow diagram
 7. FastAPI returns deterministic JSON; JavaScript renders the cards, recommendation, and analysis.
 
 ## 4. Backend functions and classes
+
+### `core/exceptions.py`
+
+Contains named HTTP exceptions for invalid cities, unsupported goals, impossible timelines, malformed reference data, and general planner failures. Naming these cases keeps domain failures readable at the API boundary.
 
 ### `GoalRequest` in `main.py`
 
@@ -100,6 +105,10 @@ Returns the five built-in choices for a selected city: Marriage, Home, Education
 
 The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their monthly requirements, runs the feasibility analysis, and returns the complete plan and assumptions.
 
+### ML routes
+
+`ml_status()` reports whether the local joblib artifact exists and returns the selected model, feature list, data-cleaning report, and evaluation records. `predict_salary_endpoint()` accepts city, education, and job role and delegates to the persisted pipeline. Both routes are optional and isolated from the direct-salary planner.
+
 ### `ml_status()` and `predict_salary_endpoint()`
 
 Optional endpoints that report the trained model and predict monthly salary from city, education, and job role. They are deliberately separate from `/api/v1/plan`, because the project requirement is that salary is provided directly by the user.
@@ -143,6 +152,12 @@ Rules:
 - Achievable: required amount is within capacity.
 - Challenging: shortfall is no more than 20% of capacity.
 - Highly Challenging: shortfall is greater than 20% of capacity.
+
+## 5.1 Data files and generated files
+
+`city_goal_costs.csv` supplies the city-level Marriage, Car, and Home cost values used by the core planner. `salary_data.csv` is a separate, optional training dataset. The `artifacts/` folder is created during training and contains a local joblib model; generated artifacts are ignored by Git and can be recreated with `python train_model.py`.
+
+`requirements.txt` lists the runtime, data-processing, and model-training dependencies. `tests/test_project.py` verifies the main routes, salary boundaries, duplicate/empty goals, reference lookup, and recommendation output. Package `__init__.py` files mark `core`, `services`, `data_pipeline`, and `ml_models` as importable Python packages.
 
 ## 6. Frontend JavaScript functions
 
@@ -189,6 +204,10 @@ Updates the visible percentage beside an inflation or annual-return slider.
 ### Download handler
 
 Serializes the latest returned plan into `financial-dream-plan.json` for local download.
+
+## 6.1 Visual file responsibilities
+
+`static/index.html` defines the form, dynamic goal mount point, result areas, recommendation panel, investment cards, and model insight panel. `static/style.css` defines the green editorial palette, range controls, responsive grids, result panels, and mobile breakpoints. `static/app.js` supplies the behavior that HTML and CSS cannot provide: fetching city data, creating cards, collecting only Planned goals, calling the API, updating projections, and downloading a JSON snapshot.
 
 ## 7. User-input edge cases
 

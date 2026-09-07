@@ -27,7 +27,7 @@ app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 class GoalRequest(BaseModel):
     name: str = Field(min_length=1, max_length=60)
-    current_cost: float = Field(gt=0, le=1_000_000_000)
+    current_cost: float = Field(ge=1_000, le=1_000_000_000)
     years: int = Field(gt=0, le=60)
     frequency: str = Field(default="monthly", pattern="^(monthly|yearly)$")
 

@@ -13,7 +13,7 @@ uvicorn main:app --reload
 
 Open `http://127.0.0.1:8000` for the planner UI or `http://127.0.0.1:8000/docs` for the interactive API documentation.
 
-For a complete explanation of the architecture, data flow, formulas, validation, and every backend/frontend function, see [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md).
+For a complete explanation of the architecture, data flow, formulas, validation, and every backend/frontend function, see [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md). For a presentation script and demonstration sequence, see [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
 ## Example request
 
@@ -41,7 +41,7 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
 - Challenging means the shortfall is at most 20% of capacity; larger shortfalls are Highly Challenging.
 - This is an educational simulation, not professional financial advice.
 
-The application is fully local and uses `city_goal_costs.csv` as its only reference dataset. No Supabase, paid API, RAG, salary prediction, or ML training is required.
+The core planner is fully local and uses `city_goal_costs.csv` as its planning reference. The separate salary-model experiment uses `salary_data.csv`. No Supabase, paid API, or RAG is required; model training is optional.
 
 ## Optional ML experiment
 

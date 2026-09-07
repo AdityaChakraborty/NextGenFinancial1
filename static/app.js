@@ -109,8 +109,12 @@ function renderSuggestionPlan(plan) {
   const insight = document.querySelector('#model-insight');
   const insightText = document.querySelector('#model-insight-text');
   insight.hidden = false;
+  document.querySelector('#entered-salary').textContent = money.format(plan.calculation_profile.monthly_salary_entered);
+  document.querySelector('#predicted-salary').textContent = plan.calculation_profile.monthly_salary_predicted === null
+    ? 'Unavailable'
+    : money.format(plan.calculation_profile.monthly_salary_predicted);
   insightText.textContent = plan.model_insight.available
-    ? `Your entered salary is ${money.format(plan.calculation_profile.monthly_salary_entered)} per month and is used to calculate your goals. With the ${plan.experience_level} years experience level, your city, education, and job role produce an expected salary of ${money.format(plan.calculation_profile.monthly_salary_predicted)} per month from the ${plan.model_insight.model} model.`
+    ? `Expected salary calculated from your city, education, job role, and ${plan.experience_level} experience level using the ${plan.model_insight.model} model. Your real salary remains the amount used for goal affordability.`
     : plan.model_insight.message;
 }
 

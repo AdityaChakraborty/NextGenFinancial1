@@ -162,12 +162,16 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .investment-total span { color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 .investment-total strong { color: var(--green-dark); font-size: 18px; }
 .investment-total p { grid-column: 1 / -1; margin: 3px 0 0; color: var(--muted); font-size: 11px; }
-.model-insight { margin-top: 12px; padding: 20px 24px; border: 1px solid rgba(201, 231, 209, .35); color: var(--cream); background: rgba(251, 252, 247, .07); }
+.model-insight { margin: 12px 0; padding: 24px; border: 1px solid rgba(201, 231, 209, .35); color: var(--cream); background: rgba(251, 252, 247, .07); }
+.salary-insight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 14px; }
+.salary-insight-grid div { padding: 16px; border: 1px solid rgba(201, 252, 247, .18); background: rgba(251, 252, 247, .06); }
+.salary-insight-grid span { display: block; margin-bottom: 7px; color: rgba(251, 252, 247, .62); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
+.salary-insight-grid strong { color: var(--mint); font-size: 24px; }
 .model-insight p:last-child { max-width: 850px; margin: 0; color: rgba(251, 252, 247, .82); font-size: 12px; line-height: 1.6; }
 @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 850px) { .shell { grid-template-columns: 1fr; min-height: auto; padding-top: 42px; } .brand-mark { margin-bottom: 45px; } .intro-copy { margin-bottom: 30px; } .planner-panel { padding: 28px 22px; } }
 @media (max-width: 1100px) { .investment-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (max-width: 900px) { .investment-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .shell, .results-shell { padding-left: 20px; padding-right: 20px; } h1 { font-size: 46px; } .form-grid, .goal-grid, .result-grid, .assumption-sliders, .suggestion-grid, .investment-grid { grid-template-columns: 1fr; } .goal-field { min-height: 75px; } .analysis-band, .analysis-numbers { flex-direction: column; } .analysis-band { gap: 26px; } .results-header, .assumptions-heading, .suggestion-heading { align-items: flex-start; flex-direction: column; } .suggestion-plan { margin-top: 38px; } .investment-total { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .shell, .results-shell { padding-left: 20px; padding-right: 20px; } h1 { font-size: 46px; } .form-grid, .goal-grid, .result-grid, .assumption-sliders, .suggestion-grid, .investment-grid, .salary-insight-grid { grid-template-columns: 1fr; } .goal-field { min-height: 75px; } .analysis-band, .analysis-numbers { flex-direction: column; } .analysis-band { gap: 26px; } .results-header, .assumptions-heading, .suggestion-heading { align-items: flex-start; flex-direction: column; } .suggestion-plan { margin-top: 38px; } .investment-total { grid-template-columns: 1fr; } }
 @media (max-width: 600px) { .custom-goals-heading { align-items: flex-start; flex-direction: column; } .custom-goal-row { grid-template-columns: 1fr; } .remove-goal { justify-self: end; } }
 @media (max-width: 700px) { .goal-controls { grid-template-columns: 1fr; } .goal-controls fieldset { min-height: 30px; } }

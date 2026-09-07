@@ -121,7 +121,14 @@
         </div>
         <button id="reset-button" class="text-button" type="button">Edit inputs <span>&#8593;</span></button>
       </div>
-      <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Profile salary insight</p><p id="model-insight-text"></p></div>
+      <div class="model-insight" id="model-insight" hidden>
+        <p class="eyebrow">Expected salary from your profile</p>
+        <div class="salary-insight-grid">
+          <div><span>Expected monthly salary</span><strong id="predicted-salary"></strong></div>
+          <div><span>Real salary used for goals</span><strong id="entered-salary"></strong></div>
+        </div>
+        <p id="model-insight-text"></p>
+      </div>
       <div id="goal-results" class="result-grid"></div>
       <p class="results-note">Educational simulation only. Costs, inflation and return assumptions do not guarantee future outcomes.</p>
       <div class="analysis-band">

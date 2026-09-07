@@ -18,6 +18,7 @@ class PlannerApiTests(unittest.TestCase):
         cls.base = {
             "name": "Rahul",
             "age": 22,
+            "experience_level": "0-1",
             "city": "Bangalore",
             "education": "B.E.",
             "job_role": "Software Engineer",
@@ -41,7 +42,10 @@ class PlannerApiTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["goals"][0]["name"], "Marriage")
         self.assertIn("analysis", body)
-        self.assertEqual(body["calculation_profile"]["salary_source"], "profile prediction")
+        self.assertEqual(body["calculation_profile"]["salary_source"], "entered real salary")
+        self.assertEqual(body["calculation_profile"]["monthly_salary_used_for_goals"], 40000)
+        self.assertIsNotNone(body["calculation_profile"]["monthly_salary_predicted"])
+        self.assertEqual(body["experience_level"], "0-1")
         self.assertEqual(len(body["suggestion_plan"]["investment_options"]), 5)
 
     def test_profile_fields_are_required(self):
@@ -49,6 +53,14 @@ class PlannerApiTests(unittest.TestCase):
             incomplete = {**self.base}
             incomplete.pop(field)
             self.assertEqual(self.client.post("/api/v1/plan", json=incomplete).status_code, 422)
+
+    def test_experience_level_has_three_supported_ranges(self):
+        for experience in ("0-1", "1-3", "3-5"):
+            response = self.client.post("/api/v1/plan", json={**self.base, "experience_level": experience})
+            self.assertEqual(response.status_code, 200)
+        for experience in ("5-10", "expert", "0"):
+            response = self.client.post("/api/v1/plan", json={**self.base, "experience_level": experience})
+            self.assertEqual(response.status_code, 422)
 
     def test_salary_boundaries_and_invalid_goal_cost(self):
         for salary, expected_status in ((999, 422), (1000, 200), (10_000_000, 200), (10_000_001, 422)):
@@ -80,6 +92,15 @@ class DomainTests(unittest.TestCase):
         )
         self.assertEqual(plan["priority_goal"], "Emergency Fund")
         self.assertEqual(len(plan["investment_options"]), 5)
+
+    def test_salary_model_artifact_uses_a_benchmarked_model(self):
+        from main import MODEL_ARTIFACT
+
+        import joblib
+
+        artifact = joblib.load(MODEL_ARTIFACT)
+        self.assertIn(artifact["selected_model"], {"gradient_boosting", "random_forest", "extra_trees", "neural_network"})
+        self.assertEqual(artifact["selected_model"], "gradient_boosting")
 
 
 if __name__ == "__main__":

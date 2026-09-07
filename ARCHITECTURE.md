@@ -35,4 +35,4 @@ flowchart LR
 3. `ml_models/salary_predictor.py` encodes the categories, compares three regressors, and stores the winner locally.
 4. `/api/v1/ml/status` reports the model and evaluation metadata.
 5. `/api/v1/ml/predict-salary` returns the profile-based salary estimate from city, education, and job role.
-6. `/api/v1/plan` uses that estimate for affordability when the local artifact exists; entered salary is the fallback if it does not.
+6. `/api/v1/plan` returns that estimate for comparison while always using the entered real salary for affordability.

@@ -18,7 +18,6 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body { margin: 0; color: var(--ink); background: var(--paper); font-family: 'Manrope', sans-serif; }
-body::before { content: ''; position: fixed; inset: 0; pointer-events: none; opacity: .34; background-image: radial-gradient(#bdd0c0 0.7px, transparent 0.7px); background-size: 18px 18px; mask-image: linear-gradient(to bottom, black, transparent 80%); }
 .shell { position: relative; display: grid; grid-template-columns: minmax(280px, .82fr) minmax(500px, 1.18fr); gap: clamp(48px, 8vw, 130px); max-width: 1240px; min-height: 720px; margin: 0 auto; padding: 84px 36px 92px; align-items: center; }
 .intro { padding: 12px 0; animation: rise .7s ease both; }
 .brand-mark { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 78px; border-radius: 50%; color: var(--cream); background: var(--green); font-weight: 800; font-size: 19px; }

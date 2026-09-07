@@ -4,9 +4,9 @@ This guide is written for presenting the project in a viva, assessment, or live 
 
 ## One-minute explanation
 
-Next Gen Financial is a local web application that turns a user's profile and selected life goals into a transparent savings plan. The user enters name, age, city, education, and job role, edits the cost and timing of each goal, and marks goals as Planned or Paused. The server uses the profile salary estimate, applies the selected inflation and return assumptions, then compares the required monthly amount with saving capacity.
+Next Gen Financial is a local web application that turns a user's profile and selected life goals into a transparent savings plan. The user enters name, age, experience level, city, education, job role, and real salary, edits the cost and timing of each goal, and marks goals as Planned or Paused. Experience levels are 0–1 years Fresher, 1–3 years Experienced, and 3–5 years Expert. The server uses real salary for saving capacity, while showing a profile-based salary prediction for comparison.
 
-The intelligence layer has two jobs. A rule-based recommendation module decides which goal deserves attention first and explains how to improve the plan. A small, locally trained salary model estimates monthly salary from city, education, and job role; the entered salary is used only as a fallback when the artifact is unavailable.
+The intelligence layer has two jobs. A rule-based recommendation module decides which goal deserves attention first and explains how to improve the plan. A small, locally trained salary model estimates monthly salary from city, education, and job role for comparison; the entered real salary always controls the financial plan.
 
 ## Five-minute demonstration
 
@@ -29,9 +29,10 @@ dependency versions in `requirements.txt`.
 Point out:
 
 - Student name and age.
+- Experience level: 0–1 years Fresher, 1–3 years Experienced, or 3–5 years Expert.
 - City loaded from the reference CSV.
-- Monthly salary fallback and saving percentage.
-- Required education and job role fields used for the profile salary calculation.
+- Real monthly salary and saving percentage.
+- Required education and job role fields used for the profile salary prediction.
 - Inflation and annual-return sliders.
 - Goal cards with cost, years, contribution frequency, and Planned/Paused state.
 
@@ -47,6 +48,7 @@ Use this sample:
 
 - Name: Rahul
 - Age: 22
+- Experience: 0–1 years Fresher
 - City: Bangalore
 - Education: B.E.
 - Job role: Software Engineer
@@ -75,7 +77,7 @@ Use the portfolio slider. Show that the equal per-category amount, each projecte
 
 ### 7. Show the profile calculation
 
-Enter `BCA` for education and `Web Developer` for job role, then calculate again. The page shows the locally trained model estimate and uses it for the affordability calculation. The salary field remains available as a fallback.
+Enter `BCA` for education and `Web Developer` for job role, then calculate again. The page shows the locally trained model estimate for comparison, while the real salary field controls affordability and goal calculations.
 
 ## How to explain the calculation
 
@@ -101,7 +103,7 @@ The result classification is:
 
 The optional salary dataset has 100 rows. The pipeline removes the empty trailing CSV column, duplicate records, invalid salary targets, and `Age` from the model feature set. `City`, `Education`, and `Job_Role` are categorical inputs. They are one-hot encoded inside a scikit-learn pipeline so the same transformation is used during training and prediction.
 
-The training script compares Extra Trees, Random Forest, and an MLP neural-network baseline using shuffled five-fold validation. Random Forest won on cross-validated mean absolute error for this dataset. The negative test R2 is an important limitation: the dataset is small and the model is a demonstration, not a reliable employment or compensation estimator.
+The training script compares Gradient Boosting, Extra Trees, Random Forest, and an MLP neural-network baseline using shuffled five-fold validation. Gradient Boosting won on cross-validated mean absolute error for this dataset. The negative test R2 is an important limitation: the dataset is small and the model is a demonstration, not a reliable employment or compensation estimator.
 
 ## Files to mention
 
@@ -132,9 +134,9 @@ No. It is an educational simulation using project assumptions. Investment return
 
 The assessment says salary is supplied directly. The model is separated as an optional benchmark so it cannot silently alter the main calculation.
 
-### Why is Random Forest used instead of a deep neural network?
+### Why is Gradient Boosting used instead of a deep neural network?
 
-The supplied dataset is small and tabular. The measured cross-validation error was lower for Random Forest than for the MLP baseline. Model choice is based on observed validation results, not on the label "deep learning" alone.
+The supplied dataset is small and tabular. The measured cross-validation error was lowest for Gradient Boosting, ahead of Random Forest and the MLP baseline. Model choice is based on observed validation results, not on the label "deep learning" alone.
 
 ### What happens when input is invalid?
 

@@ -5,7 +5,7 @@ from typing import Any
 import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.model_selection import KFold, cross_val_score, train_test_split
 from sklearn.neural_network import MLPRegressor
@@ -37,14 +37,32 @@ def _make_preprocessor(data: pd.DataFrame, features: list[str]) -> ColumnTransfo
 
 def _model_candidates() -> dict[str, Any]:
     return {
-        "extra_trees": ExtraTreesRegressor(n_estimators=250, random_state=42, min_samples_leaf=2, n_jobs=-1),
-        "random_forest": RandomForestRegressor(n_estimators=250, random_state=42, min_samples_leaf=2, n_jobs=-1),
+        "gradient_boosting": GradientBoostingRegressor(
+            n_estimators=100,
+            learning_rate=0.03,
+            max_depth=2,
+            loss="huber",
+            random_state=42,
+        ),
+        "random_forest": RandomForestRegressor(
+            n_estimators=200,
+            random_state=42,
+            min_samples_leaf=1,
+            max_features=1.0,
+            n_jobs=-1,
+        ),
+        "extra_trees": ExtraTreesRegressor(
+            n_estimators=250,
+            random_state=42,
+            min_samples_leaf=2,
+            n_jobs=-1,
+        ),
         "neural_network": MLPRegressor(hidden_layer_sizes=(64, 32), early_stopping=True, max_iter=1200, random_state=42),
     }
 
 
 def train_salary_predictor(csv_path: str | Path, artifact_path: str | Path) -> dict[str, Any]:
-    """Compare tabular ML and neural-network baselines and persist the winner."""
+    """Compare regressors and persist the winner by cross-validated MAE."""
     prepared = load_and_clean_salary_data(csv_path)
     features = prepared.frame[prepared.features]
     target = prepared.frame[prepared.target]

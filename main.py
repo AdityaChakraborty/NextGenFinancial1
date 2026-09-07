@@ -53,6 +53,7 @@ class GoalRequest(BaseModel):
 class PlanRequest(BaseModel):
     name: str = Field(min_length=1, max_length=100)
     age: int = Field(ge=18, le=100)
+    experience_level: str = Field(pattern=r"^(0-1|1-3|3-5)$")
     city: str = Field(min_length=1, max_length=100)
     salary: float = Field(ge=1_000, le=10_000_000)
     saving_percentage: float = Field(gt=0, le=100)
@@ -210,15 +211,15 @@ async def generate_plan(request: PlanRequest):
         for goal in request.goals
     ]
     total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
-    profile_salary = request.salary
+    predicted_salary = None
     if MODEL_ARTIFACT.exists():
         salary_prediction = predict_salary(
             MODEL_ARTIFACT,
             {"City": request.city, "Education": request.education, "Job_Role": request.job_role},
         )
-        profile_salary = salary_prediction["predicted_monthly_salary"]
+        predicted_salary = salary_prediction["predicted_monthly_salary"]
     analysis = engine.feasibility_analysis(
-        profile_salary, request.saving_percentage, total_monthly_investment
+        request.salary, request.saving_percentage, total_monthly_investment
     )
     suggestion_plan = build_suggestion_plan(goal_values, analysis, request.age)
     if MODEL_ARTIFACT.exists():
@@ -232,12 +233,15 @@ async def generate_plan(request: PlanRequest):
     return {
         "user": request.name,
         "age": request.age,
+        "experience_level": request.experience_level,
         "city": request.city,
         "education": request.education,
         "job_role": request.job_role,
         "calculation_profile": {
-            "monthly_salary_used": round(profile_salary, 2),
-            "salary_source": "profile prediction" if MODEL_ARTIFACT.exists() else "entered salary fallback",
+            "monthly_salary_entered": round(request.salary, 2),
+            "monthly_salary_predicted": round(predicted_salary, 2) if predicted_salary is not None else None,
+            "monthly_salary_used_for_goals": round(request.salary, 2),
+            "salary_source": "entered real salary",
         },
         "goals": goal_values,
         "assumptions": {

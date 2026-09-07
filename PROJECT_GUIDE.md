@@ -2,11 +2,11 @@
 
 ## 1. What the project does
 
-Next Gen Financial is a local educational financial-planning application for students and early-career users. A user enters their name, age, city, education, job role, salary fallback, saving percentage, assumptions, and selected goals. The application uses the profile fields to estimate salary, reads city costs from `city_goal_costs.csv`, projects each goal into the future, calculates the required investment, and checks whether saving capacity is enough.
+Next Gen Financial is a local educational financial-planning application for students and early-career users. A user enters their name, age, experience level, city, education, job role, real salary, saving percentage, assumptions, and selected goals. Experience levels are 0–1 years Fresher, 1–3 years Experienced, and 3–5 years Expert. The application predicts a comparison salary from the trained profile fields, reads city costs from `city_goal_costs.csv`, projects each goal into the future, calculates the required investment, and checks whether saving capacity based on the real salary is enough.
 
 The application is intentionally local. It does not require Supabase, a paid API, RAG, or an external LLM. Its local salary prediction model is used when the trained artifact is available.
 
-The salary model uses `salary_data.csv`; `Age` is removed from model features to reduce demographic profiling, categorical fields are one-hot encoded, numeric fields are scaled, and three candidates are compared with cross-validation. The selected artifact supports both the salary endpoint and the main planner's profile-based affordability calculation.
+The salary model uses `salary_data.csv`; `Age` is removed from model features to reduce demographic profiling, categorical fields are one-hot encoded, numeric fields are scaled, and three candidates are compared with cross-validation. The selected artifact supports both the salary endpoint and the main planner's profile salary comparison.
 
 ## 2. Project structure
 
@@ -36,9 +36,9 @@ ARCHITECTURE.md                 DFD and request-flow diagram
 3. JavaScript collects only enabled goals and sends JSON to `POST /api/v1/plan`.
 4. Pydantic validates every request field before the calculation runs.
 5. `calculate_selected_goal()` projects each enabled goal and calculates its monthly investment.
-6. The local salary model estimates monthly salary from city, education, and job role when available; entered salary is the fallback.
-7. `FinancialEngine.feasibility_analysis()` compares the combined monthly requirement to the profile-based saving capacity.
-7. FastAPI returns deterministic JSON; JavaScript renders the cards, recommendation, and analysis.
+6. The local salary model estimates a comparison salary from city, education, and job role when available.
+7. `FinancialEngine.feasibility_analysis()` compares the combined monthly requirement to saving capacity based on the entered real salary.
+8. FastAPI returns deterministic JSON; JavaScript renders the cards, recommendation, and analysis.
 
 ## 4. Backend functions and classes
 
@@ -60,7 +60,7 @@ Rejects `NaN` and infinite costs so invalid numeric values cannot enter the form
 
 ### `PlanRequest`
 
-Defines the complete planner request: name, age, city, education, job role, salary fallback, saving percentage, inflation rate, annual return, and one to twelve goals. Salary is limited to INR 1,000–10,000,000 per month.
+Defines the complete planner request: name, age, experience level, city, education, job role, real salary, saving percentage, inflation rate, annual return, and one to twelve goals. Experience level is limited to `0-1`, `1-3`, or `3-5`; salary is limited to INR 1,000–10,000,000 per month.
 
 ### `PlanRequest.strip_text()`
 
@@ -112,7 +112,7 @@ The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their mo
 
 ### `ml_status()` and `predict_salary_endpoint()`
 
-These endpoints report the trained model and predict monthly salary from city, education, and job role. `/api/v1/plan` uses the same profile prediction for affordability and returns the salary source in `calculation_profile`.
+These endpoints report the trained model and predict monthly salary from city, education, and job role. `/api/v1/plan` returns the same profile prediction for comparison and identifies the real salary used for affordability in `calculation_profile`.
 
 ## 4.1 Recommendation functions
 

@@ -110,7 +110,7 @@ function renderSuggestionPlan(plan) {
   const insightText = document.querySelector('#model-insight-text');
   insight.hidden = false;
   insightText.textContent = plan.model_insight.available
-    ? `The ${plan.model_insight.model} model estimates ${money.format(plan.model_insight.predicted_monthly_salary)} per month from your city, education, and job role. This profile-based salary is used for the affordability calculation.`
+    ? `Your entered salary is ${money.format(plan.calculation_profile.monthly_salary_entered)} per month and is used to calculate your goals. With the ${plan.experience_level} years experience level, your city, education, and job role produce an expected salary of ${money.format(plan.calculation_profile.monthly_salary_predicted)} per month from the ${plan.model_insight.model} model.`
     : plan.model_insight.message;
 }
 

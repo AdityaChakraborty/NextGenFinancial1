@@ -41,6 +41,14 @@
             <input name="age" type="number" min="18" max="100" placeholder="22" required>
           </label>
           <label class="field">
+            <span>Experience level</span>
+            <select name="experience_level" required>
+              <option value="0-1" selected>0–1 years · Fresher</option>
+              <option value="1-3">1–3 years · Experienced</option>
+              <option value="3-5">3–5 years · Expert</option>
+            </select>
+          </label>
+          <label class="field">
             <span>City</span>
             <select name="city" required>
               <option value="" selected disabled>Choose a city</option>
@@ -50,7 +58,7 @@
             </select>
           </label>
           <label class="field">
-            <span>Monthly salary fallback <small>INR</small></span>
+            <span>Real monthly salary <small>INR</small></span>
             <input name="salary" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" placeholder="120000" required>
           </label>
           <label class="field">
@@ -113,6 +121,7 @@
         </div>
         <button id="reset-button" class="text-button" type="button">Edit inputs <span>&#8593;</span></button>
       </div>
+      <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Profile salary insight</p><p id="model-insight-text"></p></div>
       <div id="goal-results" class="result-grid"></div>
       <p class="results-note">Educational simulation only. Costs, inflation and return assumptions do not guarantee future outcomes.</p>
       <div class="analysis-band">
@@ -141,7 +150,6 @@
           <article class="steps-panel"><p class="eyebrow">Three useful moves</p><ol id="suggestion-steps"></ol></article>
         </div>
         <div class="investment-panel"><div><p class="eyebrow">Explore investment options</p><p class="investment-disclaimer">Set one monthly portfolio contribution. It is divided equally across every category, then the projected values are added at the end of the tenure.</p></div><div id="investment-options" class="investment-grid"></div><div class="investment-total"><span>Total monthly portfolio contribution</span><strong id="investment-total-monthly"></strong><span>Projected value across all categories</span><strong id="investment-total-projected"></strong><span>Equal monthly category share</span><strong id="investment-total-min"></strong><span>Equal monthly category share</span><strong id="investment-total-max"></strong><span>Investment timeline range</span><strong id="investment-total-period"></strong><p id="investment-total-note"></p></div></div>
-        <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Profile salary insight</p><p id="model-insight-text"></p></div>
       </section>
     </div>
   </section>

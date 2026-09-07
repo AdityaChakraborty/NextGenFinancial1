@@ -2,11 +2,11 @@
 
 ## Objective
 
-This local application helps fresher students estimate the future cost of their goals. The user supplies their name, age, city, education, job role, salary fallback, saving percentage, and timeline for each goal.
+This local application helps students and early-career users estimate the future cost of their goals. The user supplies their name, age, experience level (`0-1` Fresher, `1-3` Experienced, or `3-5` Expert), city, education, job role, real salary, saving percentage, and timeline for each goal.
 
 ## Data
 
-`city_goal_costs.csv` is the reference dataset. The engine selects the Central area row for the chosen city and reads the current Marriage, Car, and Home costs. The local salary model uses city, education, and job role to estimate monthly salary; the entered salary is used only if the model artifact is unavailable.
+`city_goal_costs.csv` is the reference dataset. The engine selects the Central area row for the chosen city and reads the current Marriage, Car, and Home costs. The local salary model uses city, education, and job role to predict a comparison salary; the entered real salary controls the goal calculation.
 
 ## Formulas and assumptions
 
@@ -26,7 +26,7 @@ The UI defaults to the project assumptions of 6% inflation and 12% annual return
 
 ## Feasibility rules
 
-- Available monthly capacity = profile salary estimate x saving percentage / 100.
+- Available monthly capacity = entered real salary x saving percentage / 100.
 - **Achievable:** required investment is less than or equal to capacity.
 - **Challenging:** shortfall is greater than zero but no more than 20% of capacity.
 - **Highly Challenging:** shortfall is greater than 20% of capacity.
@@ -49,7 +49,7 @@ The suggestion section models five educational routes for the selected priority 
 
 ## Profile salary model
 
-The project includes a local salary-prediction model. It uses city, education, and job role as primary profile features for the planner's affordability calculation. The entered salary is a fallback, and the model remains an educational estimate rather than a reliable compensation benchmark.
+The project includes a local salary-prediction model. It uses city, education, and job role as primary profile features for a comparison estimate. The entered real salary remains the affordability input, and the model remains an educational estimate rather than a reliable compensation benchmark.
 
 ### Data preparation
 
@@ -57,12 +57,13 @@ The pipeline removes the empty trailing CSV column, duplicate rows, invalid targ
 
 ### Model selection
 
-The training command compares Extra Trees, Random Forest, and an `MLPRegressor` neural-network baseline using five-fold cross-validated mean absolute error. On the supplied 100-row dataset, the measured result was:
+The training command compares Gradient Boosting, Random Forest, Extra Trees, and an `MLPRegressor` neural-network baseline using five-fold cross-validated mean absolute error. Gradient Boosting was tuned with shallow trees, a low learning rate, and Huber loss. On the supplied 100-row dataset, the measured result was:
 
 | Model | Cross-validated MAE | Test MAE | Test R2 |
 | --- | ---: | ---: | ---: |
+| Gradient Boosting | 21,696.88 | 27,873.41 | -0.53 |
+| Random Forest | 22,018.21 | 31,052.08 | -0.84 |
 | Extra Trees | 24,175.88 | 35,267.87 | -1.20 |
-| Random Forest | 21,976.66 | 29,700.64 | -0.66 |
 | MLP neural network | 57,924.45 | 60,849.62 | -5.15 |
 
-Random Forest was selected because it had the lowest cross-validated MAE. The negative test R2 and small dataset mean this is a demonstration model, not a reliable salary benchmark. More representative data and stronger validation would be required before real use.
+Gradient Boosting is selected because it has the lowest cross-validated MAE. XGBoost was not added because it is not installed and the small 100-row dataset does not justify introducing another dependency without a measured improvement. The negative test R2 and small dataset mean this is a demonstration model, not a reliable salary benchmark. More representative data and stronger validation would be required before real use.

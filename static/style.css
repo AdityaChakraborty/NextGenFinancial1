@@ -84,6 +84,17 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .goal-controls fieldset label { display: flex; align-items: center; gap: 4px; font: 10px 'DM Mono', monospace; }
 .goal-controls fieldset input { min-height: auto; width: auto; }
 .configurable-goal .remove-goal { align-self: center; }
+.vehicle-finance { margin-top: 18px; padding: 15px; border: 1px solid rgba(30, 107, 77, .3); background: rgba(251, 252, 247, .55); }
+.vehicle-finance-heading, .vehicle-finance-controls, .vehicle-finance-preview { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+.vehicle-finance-heading { margin-bottom: 14px; color: var(--green-dark); font-size: 12px; }
+.vehicle-finance-controls { align-items: end; color: var(--muted); font: 10px 'DM Mono', monospace; }
+.vehicle-finance-controls label { flex: 1; }
+.vehicle-finance-controls output { float: right; color: var(--green); }
+.vehicle-finance-controls input { display: block; min-height: auto; margin-top: 8px; padding: 0; accent-color: var(--green); }
+.vehicle-tenure { white-space: nowrap; color: var(--green); }
+.vehicle-finance-preview { margin-top: 14px; align-items: start; }
+.vehicle-finance-preview span { color: var(--muted); font: 9px 'DM Mono', monospace; text-transform: uppercase; }
+.vehicle-finance-preview strong { display: block; margin-top: 5px; color: var(--ink); font: 700 14px 'Manrope', sans-serif; }
 .custom-goals-heading { display: flex; justify-content: space-between; align-items: end; gap: 18px; margin: 36px 0 16px; }
 .custom-goals-heading h3 { margin: 0; font-size: 17px; }
 .secondary-button { border: 1px solid var(--green); padding: 10px 13px; color: var(--green); background: transparent; cursor: pointer; font: 700 11px 'Manrope', sans-serif; }
@@ -116,11 +127,12 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 3px rg
 .result-card.home h3 { color: var(--blue); }
 .result-card span { display: block; margin-bottom: 7px; color: rgba(251, 252, 247, .6); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 .result-card strong { display: block; margin-bottom: 22px; color: var(--cream); font-size: 23px; letter-spacing: -.8px; }
+.result-card.car strong { margin-bottom: 16px; }
 .result-card .sip { margin-bottom: 0; color: var(--mint); font-size: 28px; }
 .results-note { margin: 22px 0 0; color: rgba(251, 252, 247, .62); font-size: 11px; }
 .analysis-band { display: flex; justify-content: space-between; gap: 30px; margin-top: 12px; padding: 29px 24px; background: var(--cream); color: var(--ink); }
 .analysis-status { margin: 0; font-size: 21px; font-weight: 800; letter-spacing: -.6px; }
-.analysis-numbers { display: flex; gap: clamp(18px, 5vw, 70px); }
+.analysis-numbers { display: flex; gap: clamp(18px, 5vw, 50px); }
 .analysis-numbers div { display: flex; flex-direction: column; gap: 7px; }
 .analysis-numbers span { color: var(--muted); font: 10px 'DM Mono', monospace; text-transform: uppercase; }
 .analysis-numbers strong { font-size: 17px; }

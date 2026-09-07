@@ -48,6 +48,35 @@ class PlannerApiTests(unittest.TestCase):
         self.assertEqual(body["experience_level"], "0-1")
         self.assertEqual(len(body["suggestion_plan"]["investment_options"]), 5)
 
+    def test_car_goal_uses_eighty_twenty_financing_and_emi(self):
+        response = self.client.post(
+            "/api/v1/plan",
+            json={**self.base, "goals": [{"name": "Car / Bike", "current_cost": 500000, "years": 4, "frequency": "monthly"}]},
+        )
+        self.assertEqual(response.status_code, 200)
+        goal = response.json()["goals"][0]
+        self.assertEqual(goal["down_payment_percentage"], 80)
+        self.assertEqual(goal["loan_percentage"], 20)
+        self.assertGreater(goal["emi"], 0)
+        self.assertGreater(response.json()["analysis"]["monthly_emi"], 0)
+        self.assertLess(response.json()["analysis"]["monthly_capacity_after_emi"], response.json()["analysis"]["monthly_capacity"])
+        self.assertAlmostEqual(response.json()["analysis"]["total_required"], goal["monthly_total"])
+
+    def test_car_emi_toggle_and_down_payment_percentage(self):
+        response = self.client.post(
+            "/api/v1/plan",
+            json={**self.base, "goals": [{
+                "name": "Car / Bike", "current_cost": 500000, "years": 6,
+                "frequency": "monthly", "emi_enabled": False, "down_payment_percentage": 90,
+            }]},
+        )
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body["goals"][0]["down_payment_percentage"], 90)
+        self.assertEqual(body["goals"][0]["loan_percentage"], 10)
+        self.assertEqual(body["goals"][0]["emi"], 0)
+        self.assertEqual(body["analysis"]["monthly_emi"], 0)
+
     def test_profile_fields_are_required(self):
         for field in ("education", "job_role"):
             incomplete = {**self.base}

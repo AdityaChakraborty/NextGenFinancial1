@@ -31,6 +31,8 @@ class GoalRequest(BaseModel):
     current_cost: float = Field(ge=1_000, le=1_000_000_000)
     years: int = Field(gt=0, le=60)
     frequency: str = Field(default="monthly", pattern="^(monthly|yearly)$")
+    emi_enabled: bool = True
+    down_payment_percentage: float = Field(default=80, ge=0, le=100)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -133,7 +135,7 @@ def calculate_selected_goal(
     monthly_rate = annual_return / 100 / 12
     months = goal.years * 12
     monthly_investment = (future_cost * monthly_rate) / ((1 + monthly_rate) ** months - 1)
-    return {
+    result: dict[str, float | str | int] = {
         "name": goal.name,
         "years": goal.years,
         "frequency": goal.frequency,
@@ -146,6 +148,32 @@ def calculate_selected_goal(
             2,
         ),
     }
+    if goal.name.casefold() == "car / bike":
+        loan_rate = 10 / 100 / 12
+        down_payment_percentage = goal.down_payment_percentage
+        loan_percentage = 100 - down_payment_percentage
+        loan_amount = future_cost * loan_percentage / 100
+        emi = (loan_amount * loan_rate * (1 + loan_rate) ** months) / ((1 + loan_rate) ** months - 1)
+        down_payment = future_cost * down_payment_percentage / 100
+        down_payment_investment = (down_payment * monthly_rate) / ((1 + monthly_rate) ** months - 1)
+        result.update({
+            "emi_enabled": goal.emi_enabled,
+            "down_payment_percentage": down_payment_percentage,
+            "down_payment_amount": round(down_payment, 2),
+            "loan_percentage": loan_percentage,
+            "loan_amount": round(loan_amount, 2),
+            "loan_interest_rate": 10,
+            "loan_term_years": goal.years,
+            "emi": round(emi if goal.emi_enabled else 0, 2),
+            "monthly_sip": round(down_payment_investment, 2),
+            "yearly_investment": round(down_payment_investment * 12, 2),
+            "contribution_amount": round(
+                down_payment_investment if goal.frequency == "monthly" else down_payment_investment * 12,
+                2,
+            ),
+            "monthly_total": round(down_payment_investment + (emi if goal.emi_enabled else 0), 2),
+        })
+    return result
 
 
 @app.get("/")
@@ -210,7 +238,10 @@ async def generate_plan(request: PlanRequest):
         calculate_selected_goal(goal, request.inflation_rate, request.annual_return)
         for goal in request.goals
     ]
-    total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
+    total_monthly_investment = sum(
+        goal.get("monthly_total", goal["monthly_sip"]) for goal in goal_values
+    )
+    monthly_emi = sum(goal.get("emi", 0) for goal in goal_values)
     predicted_salary = None
     if MODEL_ARTIFACT.exists():
         salary_prediction = predict_salary(
@@ -219,7 +250,7 @@ async def generate_plan(request: PlanRequest):
         )
         predicted_salary = salary_prediction["predicted_monthly_salary"]
     analysis = engine.feasibility_analysis(
-        request.salary, request.saving_percentage, total_monthly_investment
+        request.salary, request.saving_percentage, total_monthly_investment, monthly_emi
     )
     suggestion_plan = build_suggestion_plan(goal_values, analysis, request.age)
     if MODEL_ARTIFACT.exists():

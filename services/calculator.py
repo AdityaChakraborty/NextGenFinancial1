@@ -68,7 +68,7 @@ class FinancialEngine:
 
     @staticmethod
     def feasibility_analysis(
-        salary: float, saving_percentage: float, required_monthly: float
+        salary: float, saving_percentage: float, required_monthly: float, monthly_emi: float = 0
     ) -> dict[str, float | str]:
         monthly_capacity = salary * (saving_percentage / 100)
         shortfall = required_monthly - monthly_capacity
@@ -89,6 +89,8 @@ class FinancialEngine:
 
         return {
             "monthly_capacity": round(monthly_capacity, 2),
+            "monthly_emi": round(monthly_emi, 2),
+            "monthly_capacity_after_emi": round(max(0, monthly_capacity - monthly_emi), 2),
             "total_required": round(required_monthly, 2),
             "shortfall": round(max(0, shortfall), 2),
             "surplus": round(abs(min(0, shortfall)), 2),

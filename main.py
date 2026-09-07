@@ -1,5 +1,6 @@
 from pathlib import Path
 import math
+import re
 from typing import Any
 
 from fastapi import FastAPI, Request
@@ -34,7 +35,12 @@ class GoalRequest(BaseModel):
     @field_validator("name", mode="before")
     @classmethod
     def strip_name(cls, value: object) -> object:
-        return value.strip() if isinstance(value, str) else value
+        if not isinstance(value, str):
+            return value
+        value = value.strip()
+        if not re.search(r"[A-Za-z]", value):
+            raise ValueError("must contain at least one letter")
+        return value
 
     @field_validator("current_cost")
     @classmethod
@@ -52,14 +58,26 @@ class PlanRequest(BaseModel):
     saving_percentage: float = Field(gt=0, le=100)
     inflation_rate: float = Field(gt=0, le=20, default=6)
     annual_return: float = Field(gt=0, le=30, default=12)
-    education: str | None = Field(default=None, max_length=100)
-    job_role: str | None = Field(default=None, max_length=100)
+    education: str = Field(min_length=1, max_length=100)
+    job_role: str = Field(min_length=1, max_length=100)
     goals: list[GoalRequest] = Field(min_length=1, max_length=12)
 
     @field_validator("name", "city", "education", "job_role", mode="before")
     @classmethod
     def strip_text(cls, value: object) -> object:
-        return value.strip() if isinstance(value, str) else value
+        if not isinstance(value, str):
+            return value
+        value = value.strip()
+        if value and not re.search(r"[A-Za-z]", value):
+            raise ValueError("must contain at least one letter")
+        return value
+
+    @field_validator("name")
+    @classmethod
+    def validate_person_name(cls, value: str) -> str:
+        if not re.fullmatch(r"[A-Za-z]+(?:[ .'-][A-Za-z]+)*", value):
+            raise ValueError("use letters, spaces, apostrophes, periods, or hyphens only")
+        return value
 
     @field_validator("salary", "saving_percentage", "inflation_rate", "annual_return")
     @classmethod
@@ -192,29 +210,35 @@ async def generate_plan(request: PlanRequest):
         for goal in request.goals
     ]
     total_monthly_investment = sum(goal["monthly_sip"] for goal in goal_values)
-    analysis = engine.feasibility_analysis(
-        request.salary, request.saving_percentage, total_monthly_investment
-    )
-
-    suggestion_plan = build_suggestion_plan(goal_values, analysis, request.age)
-    if request.education and request.job_role and MODEL_ARTIFACT.exists():
-        suggestion_plan["model_insight"] = {
-            "available": True,
-            **predict_salary(
+    profile_salary = request.salary
+    if MODEL_ARTIFACT.exists():
+        salary_prediction = predict_salary(
             MODEL_ARTIFACT,
             {"City": request.city, "Education": request.education, "Job_Role": request.job_role},
-            ),
-        }
+        )
+        profile_salary = salary_prediction["predicted_monthly_salary"]
+    analysis = engine.feasibility_analysis(
+        profile_salary, request.saving_percentage, total_monthly_investment
+    )
+    suggestion_plan = build_suggestion_plan(goal_values, analysis, request.age)
+    if MODEL_ARTIFACT.exists():
+        suggestion_plan["model_insight"] = {"available": True, **salary_prediction}
     else:
         suggestion_plan["model_insight"] = {
             "available": False,
-            "message": "Optional model insight needs Education and Job role, plus a trained local model.",
+            "message": "The trained salary model is unavailable, so the entered salary is used.",
         }
 
     return {
         "user": request.name,
         "age": request.age,
         "city": request.city,
+        "education": request.education,
+        "job_role": request.job_role,
+        "calculation_profile": {
+            "monthly_salary_used": round(profile_salary, 2),
+            "salary_source": "profile prediction" if MODEL_ARTIFACT.exists() else "entered salary fallback",
+        },
         "goals": goal_values,
         "assumptions": {
             "inflation_rate": request.inflation_rate,

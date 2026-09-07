@@ -1,0 +1,523 @@
+NEXT GEN FINANCIAL
+INTERACTIVE FASTAPI AND FUNCTION GUIDE
+============================================================
+
+1. START THE APPLICATION
+------------------------
+
+Open a terminal in this project folder:
+
+    cd "/Users/adi/Desktop/vscode /webskitters/finalcial calculator"
+
+Recommended setup (Python 3.13):
+
+    python3.13 -m venv .venv
+    source .venv/bin/activate
+    python -m pip install -r requirements.txt
+
+Start FastAPI:
+
+    python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+
+The server should display:
+
+    Uvicorn running on http://127.0.0.1:8000
+
+Open these URLs in a browser:
+
+    Application UI:       http://127.0.0.1:8000
+    Interactive API docs: http://127.0.0.1:8000/docs
+    Alternative docs:     http://127.0.0.1:8000/redoc
+    OpenAPI JSON schema:   http://127.0.0.1:8000/openapi.json
+    Health check:          http://127.0.0.1:8000/health
+
+Keep the terminal running while using the application. Press Ctrl+C to stop it.
+
+The project uses Python 3.13 because the pinned dependency versions are tested
+with that interpreter. If 'python3.13' is not available, install Python 3.13
+first. After activation, use the virtual environment's 'python' command.
+
+The current requirements include FastAPI 0.115.6, Uvicorn 0.34.0, Pandas 2.2.3,
+Pydantic 2.10.5, scikit-learn 1.6.1, joblib 1.4.2, and httpx 0.28.1. The
+httpx package is needed by FastAPI's TestClient.
+
+
+2. USING THE INTERACTIVE /docs PAGE
+-----------------------------------
+
+1. Start the server as shown above.
+2. Open http://127.0.0.1:8000/docs.
+3. Expand an endpoint by clicking its row.
+4. Click the 'Try it out' button in the upper-right area of that endpoint.
+5. Edit the generated query parameters or JSON request body.
+6. Click 'Execute'.
+7. Read the response code, response body, and request URL below the button.
+
+The most useful endpoint is:
+
+    POST /api/v1/plan
+
+The normal workflow is:
+
+    GET  /api/v1/cities
+    GET  /api/v1/default-goals?city=Bangalore
+    POST /api/v1/plan
+
+The first request lists valid cities. The second returns sensible default goal
+costs for the selected city. The third calculates the complete financial plan.
+
+Swagger automatically shows the request schema, required fields, allowed ranges,
+and the response returned by FastAPI. It also validates the request before the
+calculation starts.
+
+
+3. COMPLETE /api/v1/plan EXAMPLE
+---------------------------------
+
+In Swagger, expand POST /api/v1/plan, click 'Try it out', and paste this body:
+
+{
+  "name": "Rahul",
+  "age": 22,
+  "city": "Bangalore",
+  "salary": 40000,
+  "saving_percentage": 20,
+  "inflation_rate": 6,
+  "annual_return": 12,
+  "education": "B.Tech",
+  "job_role": "Software Engineer",
+  "goals": [
+    {
+      "name": "Marriage",
+      "current_cost": 890000,
+      "years": 5,
+      "frequency": "monthly"
+    },
+    {
+      "name": "Home",
+      "current_cost": 9400000,
+      "years": 10,
+      "frequency": "yearly"
+    }
+  ]
+}
+
+Click Execute. A successful response has HTTP status 200 and contains:
+
+    user          The submitted name.
+    age           The submitted age.
+    city          The submitted city.
+    goals         Future cost and contribution calculations for every goal.
+    assumptions   Inflation, return, and area assumptions used.
+    analysis      Capacity, required amount, shortfall/surplus, and status.
+    suggestion_plan
+                  Priority goal, action steps, equal-allocation investment
+                  scenarios, and profile salary insight.
+
+Important: 'salary' is the monthly salary fallback in INR. When the trained
+model exists, city, education, and job_role are used to estimate salary for the
+affordability calculation. The response includes calculation_profile with the
+salary used and its source.
+
+
+4. CURL EXAMPLES
+----------------
+
+List cities:
+
+    curl http://127.0.0.1:8000/api/v1/cities
+
+Get default goals for Bangalore:
+
+    curl "http://127.0.0.1:8000/api/v1/default-goals?city=Bangalore"
+
+Create a plan from the terminal:
+
+    curl -X POST http://127.0.0.1:8000/api/v1/plan \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "name": "Asha",
+        "age": 22,
+        "city": "Pune",
+        "salary": 120000,
+        "education": "B.Tech",
+        "job_role": "Software Engineer",
+        "saving_percentage": 30,
+        "goals": [
+          {
+            "name": "Marriage",
+            "current_cost": 1000000,
+            "years": 5,
+            "frequency": "monthly"
+          },
+          {
+            "name": "Home",
+            "current_cost": 12000000,
+            "years": 10,
+            "frequency": "yearly"
+          }
+        ]
+      }'
+
+The fields inflation_rate and annual_return are optional. Their defaults are
+6 and 12 respectively. Education and job_role are required primary profile
+inputs. The local model uses city, education, and job_role for the salary used
+by the affordability calculation when its artifact exists.
+
+
+5. ENDPOINT REFERENCE
+---------------------
+
+GET /
+    Serves the browser planner from static/index.html.
+
+GET /health
+    Returns {"status":"ok"}. Use this to confirm that the server is alive.
+
+GET /api/v1/cities
+    Returns a sorted list of cities from city_goal_costs.csv.
+
+GET /api/v1/default-goals?city=Bangalore
+    Returns built-in goals and current costs for the requested city. The city
+    must exist in the reference CSV. Marriage, Home, and Car / Bike use city
+    data; Education, Vacation / Trip, and Emergency Fund use app defaults.
+
+POST /api/v1/plan
+    Main financial planning endpoint. It validates the input, projects every
+    selected goal, checks affordability, and creates recommendations.
+
+GET /api/v1/ml/status
+    Reports whether artifacts/salary_predictor.joblib exists. If available,
+    it returns the selected model, features, training data report, and reports.
+
+POST /api/v1/ml/predict-salary
+    Accepts city, education, and job_role. Example body:
+
+    {
+      "city": "Bangalore",
+      "education": "B.Tech",
+      "job_role": "Software Engineer"
+    }
+
+    This returns the same profile salary estimate used by POST /api/v1/plan
+    when the local artifact exists.
+
+
+6. INPUT RULES
+--------------
+
+PlanRequest fields:
+
+    name               1 to 100 characters.
+    age                18 to 100.
+    city               1 to 100 characters.
+    salary             INR 1,000 to INR 10,000,000 per month.
+    saving_percentage  Greater than 0 and up to 100.
+    inflation_rate     Greater than 0 and up to 20 percent. Default: 6.
+    annual_return      Greater than 0 and up to 30 percent. Default: 12.
+    education          Required, 1 to 100 characters.
+    job_role           Required, 1 to 100 characters.
+    goals              At least 1 and at most 12 goals.
+
+GoalRequest fields:
+
+    name               1 to 60 characters.
+    current_cost       INR 1,000 to INR 1,000,000,000.
+    years              1 to 60.
+    frequency          Either monthly or yearly.
+
+Names and text are trimmed. Duplicate goal names are rejected without regard
+to capitalization. NaN and infinity are rejected for numeric values.
+
+A validation failure returns HTTP 422, for example:
+
+{
+  "detail": "Please correct the highlighted fields.",
+  "errors": [
+    {
+      "field": "salary",
+      "message": "Input should be greater than or equal to 1000"
+    }
+  ]
+}
+
+
+7. HOW THE CALCULATION WORKS
+----------------------------
+
+For each goal:
+
+    future_cost = current_cost * (1 + inflation_rate / 100) ** years
+
+The monthly contribution uses monthly compounding:
+
+    monthly_rate = annual_return / 100 / 12
+    months = years * 12
+    monthly_sip = future_cost * monthly_rate /
+                  ((1 + monthly_rate) ** months - 1)
+
+Monthly saving capacity is:
+
+    monthly_capacity = salary * saving_percentage / 100
+
+The combined monthly SIP is compared with that capacity.
+
+    Achievable          required amount is within capacity.
+    Challenging         shortfall is no more than 20% of capacity.
+    Highly Challenging  shortfall is greater than 20% of capacity.
+
+These are educational projections, not guaranteed investment returns or
+professional financial advice.
+
+
+8. FUNCTION REFERENCE: main.py
+-------------------------------
+
+GoalRequest.strip_name(value)
+    Pydantic validator. Removes whitespace around a goal name before the name
+    length rule is checked.
+
+GoalRequest.reject_non_finite_cost(value)
+    Pydantic validator. Rejects NaN and infinity in current_cost.
+
+PlanRequest.strip_text(value)
+    Pydantic validator. Trims name, city, education, and job_role values.
+
+PlanRequest.reject_non_finite_numbers(value)
+    Pydantic validator. Rejects non-finite salary, saving percentage, inflation,
+    and annual return values.
+
+PlanRequest.reject_duplicate_goals(self)
+    Pydantic model validator. Case-folds goal names and rejects duplicates.
+
+SalaryPredictionRequest.strip_profile_text(value)
+    Pydantic validator. Trims city, education, and job_role values.
+
+validation_exception_handler(request, exc)
+    Converts Pydantic/FastAPI validation errors into the project's readable
+    {detail, errors} response format used by the browser.
+
+calculate_goal(city, goal, years)
+    Legacy helper. Looks up a CSV-backed Marriage, Car, or Home cost, applies
+    the fixed FinancialEngine assumptions, and returns current cost, future
+    cost, and monthly SIP.
+
+calculate_selected_goal(goal, inflation_rate, annual_return)
+    Calculates one user-selected goal using the submitted cost, years, inflation,
+    return, and frequency. Returns monthly and yearly contribution values.
+
+frontend()
+    Async route handler for GET /. Sends static/index.html to the browser.
+
+health()
+    Async route handler for GET /health. Returns a simple status object.
+
+list_cities()
+    Async route handler for GET /api/v1/cities. Reads unique city names from
+    the loaded FinancialEngine data.
+
+default_goals(city)
+    Async route handler for GET /api/v1/default-goals. Builds the built-in goal
+    list using the selected city's reference costs and local default costs.
+
+ml_status()
+    Async route handler for GET /api/v1/ml/status. Loads the trained joblib
+    artifact and reports its model and evaluation metadata when available.
+
+predict_salary_endpoint(request)
+    Async route handler for POST /api/v1/ml/predict-salary. Validates the
+    profile, checks that the artifact exists, and calls predict_salary().
+
+generate_plan(request)
+    Async route handler for POST /api/v1/plan. Calculates all goals, sums the
+    monthly requirements, calls feasibility_analysis(), builds recommendations,
+    and optionally adds the salary-model result.
+
+
+9. FUNCTION REFERENCE: services/calculator.py
+----------------------------------------------
+
+FinancialEngine.__init__(costs_file)
+    Loads city_goal_costs.csv with Pandas and verifies required columns and
+    numeric values. Startup fails with a clear reference-data error if the file
+    is missing or malformed.
+
+FinancialEngine.get_current_cost(city, goal)
+    Finds a city case-insensitively, selects its Central area row, verifies that
+    the goal is Marriage, Car, or Home, and returns its current cost.
+
+FinancialEngine.calculate_future_cost(current_cost, years)
+    Class method using the fixed 6% engine inflation assumption. It rejects a
+    non-positive timeline.
+
+FinancialEngine.required_monthly_investment(future_cost, years)
+    Class method using the fixed 12% engine return assumption and monthly
+    compounding. It rejects a non-positive timeline.
+
+FinancialEngine.feasibility_analysis(salary, saving_percentage, required_monthly)
+    Calculates capacity, shortfall, surplus, status, and human-readable advice.
+
+
+10. FUNCTION REFERENCE: services/recommendations.py
+----------------------------------------------------
+
+_investment_scenario(name, annual_return, fit, risk, note, future_goal_cost, years)
+    Internal helper. Creates one illustrative investment option with monthly
+    amount, yearly amount, projected value, and projected growth.
+
+build_suggestion_plan(goals, analysis, age)
+    Sorts goals by nearest timeline, chooses the priority goal, adapts advice to
+    Achievable/Challenging/Highly Challenging, adds practical steps, and creates
+    five educational investment scenarios.
+
+
+11. FUNCTION REFERENCE: DATA AND ML FILES
+------------------------------------------
+
+data_pipeline.preprocess.load_and_clean_salary_data(csv_path)
+    Reads salary_data.csv, removes empty columns and duplicate rows, validates
+    Monthly_Salary, removes Age/Gender/Name and other excluded fields, cleans
+    feature values, and returns PreparedSalaryData.
+
+ml_models.salary_predictor._make_preprocessor(data, features)
+    Internal helper. Separates numeric and categorical features and builds the
+    scikit-learn scaling and one-hot encoding transformer.
+
+ml_models.salary_predictor._model_candidates()
+    Internal helper. Returns the Extra Trees, Random Forest, and neural-network
+    regression candidates used during model comparison.
+
+ml_models.salary_predictor.train_salary_predictor(csv_path, artifact_path)
+    Cleans data, splits train/test data, cross-validates all model candidates,
+    selects the lowest cross-validated MAE model, evaluates it, and saves the
+    winning pipeline as a joblib artifact.
+
+ml_models.salary_predictor.predict_salary(artifact_path, values)
+    Loads the saved pipeline, creates a one-row feature DataFrame, predicts a
+    monthly salary, prevents negative output, and returns model metadata.
+
+train_model.py main block
+    Parses --data and --artifact command-line options, trains the salary model,
+    and prints the selected model and reports as JSON.
+
+To train or recreate the optional artifact:
+
+    python train_model.py --data salary_data.csv \
+      --artifact artifacts/salary_predictor.joblib
+
+
+12. FUNCTION REFERENCE: static/app.js
+--------------------------------------
+
+goalCard(goal, index, custom)
+    Builds the HTML for a goal card, including cost, timeline, frequency, and
+    Planned/Paused controls.
+
+connectGoalCard(card)
+    Adds event listeners to a goal card. Keeps the slider and number input in
+    sync, changes Planned/Paused state, and removes custom goals.
+
+loadGoalOptions()
+    Calls GET /api/v1/default-goals for the selected city and renders the cards.
+
+addCustomGoal()
+    Adds a user-editable custom goal. The browser permits up to eight custom
+    goals.
+
+collectGoals()
+    Reads only enabled Planned cards and converts their values to API-ready
+    numbers and strings.
+
+renderGoalCards(goals)
+    Displays current cost, projected cost, and monthly/yearly contribution for
+    each calculated goal.
+
+renderAnalysis(analysis)
+    Displays status, required total, saving capacity, difference, and advice.
+
+renderSuggestionPlan(plan)
+    Displays the priority advice, action steps, and investment cards returned by
+    the API. It also prepares profile salary insight text.
+
+updateInvestmentPortfolio(total_monthly)
+    Splits one portfolio contribution equally across all investment cards and
+    recalculates each projected value and gap or surplus.
+
+updateInvestmentTotals()
+    Adds the equal monthly category contributions, projected values, and timeline
+    range across the investment cards.
+
+showError(data)
+    Converts the API's structured validation errors into one readable message.
+
+Form submit handler
+    Prevents a page reload, collects the form values, posts JSON to
+    /api/v1/plan, and renders the returned plan or an error.
+
+syncAssumption(slider, output)
+    Copies an inflation or return slider value into its visible percentage label.
+
+City change handler
+    Reloads default goal costs when the user chooses a different city.
+
+Download handler
+    Downloads the latest returned plan as financial-dream-plan.json.
+
+
+13. TESTING
+-----------
+
+Run the current automated tests from the project folder:
+
+    python3 -m unittest discover -s tests -v
+
+The tests cover:
+
+    - /health and /api/v1/cities
+    - successful plan generation
+    - salary lower and upper boundaries
+    - invalid goal cost
+    - empty goals
+    - duplicate goal names
+    - city reference lookup
+    - recommendation generation
+
+A quick live check while the server is running:
+
+    curl -fsS http://127.0.0.1:8000/health
+
+Expected output:
+
+    {"status":"ok"}
+
+
+14. TROUBLESHOOTING
+-------------------
+
+Port 8000 is already in use:
+    Stop the other process, or run Uvicorn on another port, for example:
+
+        python -m uvicorn main:app --host 127.0.0.1 --port 8001 --reload
+
+Then use http://127.0.0.1:8001/docs.
+
+ModuleNotFoundError for FastAPI or Pandas:
+    Activate the virtual environment and run:
+
+        python -m pip install -r requirements.txt
+
+The browser shows no goal cards:
+    Confirm the server is running and inspect GET /api/v1/cities in /docs.
+    Also check the terminal for CSV or server errors.
+
+Salary model is unavailable:
+    Run train_model.py to create artifacts/salary_predictor.joblib. The core
+    planner still works because the model is optional.
+
+Validation returns 422:
+    Read the errors array. It identifies the exact field and reason. Check the
+    numeric ranges and make sure every goal name is unique.
+
+============================================================
+END OF GUIDE
+============================================================

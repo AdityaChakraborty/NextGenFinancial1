@@ -100,41 +100,37 @@ function renderSuggestionPlan(plan) {
   document.querySelector('#horizon-note').textContent = plan.horizon_note;
   document.querySelector('#suggestion-steps').innerHTML = plan.steps.map((step) => `<li>${step}</li>`).join('');
   investmentState = plan.investment_options.map((option) => ({ ...option, selected_monthly: option.monthly_amount }));
-  document.querySelector('#investment-options').innerHTML = investmentState.map((option, index) => `
-    <article class="investment-card" data-investment-index="${index}"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><div class="option-amounts"><b class="option-monthly">${money.format(option.monthly_amount)}<small>/ month</small></b><b class="option-yearly">${money.format(option.yearly_amount)}<small>/ year</small></b></div><div class="amount-adjuster"><button class="amount-step" data-change="-1" type="button" aria-label="Decrease ${option.name} amount">−</button><input class="amount-slider" type="range" min="${Math.max(100, Math.round(option.monthly_amount * 0.25))}" max="${Math.round(option.monthly_amount * 3)}" step="100" value="${option.monthly_amount}" aria-label="Monthly ${option.name} investment"><button class="amount-step" data-change="1" type="button" aria-label="Increase ${option.name} amount">+</button></div><p class="option-projection"></p><p>${option.note}</p></article>
-  `).join('');
-  document.querySelectorAll('.investment-card').forEach((card) => {
-    card.querySelector('.amount-slider').addEventListener('input', (event) => updateInvestmentOption(card, Number(event.target.value)));
-    card.querySelectorAll('.amount-step').forEach((button) => button.addEventListener('click', () => {
-      const slider = card.querySelector('.amount-slider');
-      updateInvestmentOption(card, Number(slider.value) + Number(button.dataset.change) * Number(slider.step));
-    }));
-    updateInvestmentOption(card, Number(card.querySelector('.amount-slider').value));
-  });
+  const portfolioMonthly = investmentState.reduce((total, option) => total + option.monthly_amount, 0);
+  document.querySelector('#investment-options').innerHTML = `<div class="portfolio-adjuster"><label>Total monthly portfolio contribution <output id="portfolio-monthly-output">${money.format(portfolioMonthly)}</output><input id="portfolio-monthly-slider" type="range" min="${Math.max(100, Math.round(portfolioMonthly * 0.25))}" max="${Math.round(portfolioMonthly * 3)}" step="100" value="${portfolioMonthly}"></label><p>Split equally across ${investmentState.length} categories: <strong id="portfolio-share-output"></strong> per category each month.</p></div>${investmentState.map((option) => `
+    <article class="investment-card"><h3>${option.name}</h3><span>${option.fit}</span><strong>${option.risk} risk</strong><div class="option-amounts"><b class="option-monthly">${money.format(option.monthly_amount)}<small>/ month</small></b><b class="option-yearly">${money.format(option.yearly_amount)}<small>/ year</small></b></div><p class="option-projection"></p><p>${option.note}</p></article>
+  `).join('')}`;
+  document.querySelector('#portfolio-monthly-slider').addEventListener('input', (event) => updateInvestmentPortfolio(Number(event.target.value)));
+  updateInvestmentPortfolio(portfolioMonthly);
   const insight = document.querySelector('#model-insight');
   const insightText = document.querySelector('#model-insight-text');
   insight.hidden = false;
   insightText.textContent = plan.model_insight.available
-    ? `The ${plan.model_insight.model} model estimates ${money.format(plan.model_insight.predicted_monthly_salary)} per month from the optional profile. This is a benchmark only; the planner always uses your entered salary.`
+    ? `The ${plan.model_insight.model} model estimates ${money.format(plan.model_insight.predicted_monthly_salary)} per month from your city, education, and job role. This profile-based salary is used for the affordability calculation.`
     : plan.model_insight.message;
 }
 
-function updateInvestmentOption(card, amount) {
-  const index = Number(card.dataset.investmentIndex);
-  const option = investmentState[index];
-  const slider = card.querySelector('.amount-slider');
-  slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), amount));
-  option.selected_monthly = Number(slider.value);
-  const rate = option.annual_return / 100 / 12;
-  const months = option.years * 12;
-  const projectedValue = option.selected_monthly * (((1 + rate) ** months - 1) / rate);
-  const yearly = option.selected_monthly * 12;
-  const gap = option.goal_amount - projectedValue;
-  card.querySelector('.option-monthly').innerHTML = `${money.format(option.selected_monthly)}<small>/ month</small>`;
-  card.querySelector('.option-yearly').innerHTML = `${money.format(yearly)}<small>/ year</small>`;
-  card.querySelector('.option-projection').textContent = gap > 0
-    ? `Projected value ${money.format(projectedValue)} • Gap ${money.format(gap)}`
-    : `Projected value ${money.format(projectedValue)} • Surplus ${money.format(Math.abs(gap))}`;
+function updateInvestmentPortfolio(totalMonthly) {
+  const share = totalMonthly / investmentState.length;
+  investmentState.forEach((option) => { option.selected_monthly = share; });
+  document.querySelector('#portfolio-monthly-output').textContent = money.format(totalMonthly);
+  document.querySelector('#portfolio-share-output').textContent = money.format(share);
+  document.querySelectorAll('.investment-card').forEach((card, index) => {
+    const option = investmentState[index];
+    const rate = option.annual_return / 100 / 12;
+    const months = option.years * 12;
+    const projectedValue = option.selected_monthly * (((1 + rate) ** months - 1) / rate);
+    const gap = option.goal_amount - projectedValue;
+    card.querySelector('.option-monthly').innerHTML = `${money.format(option.selected_monthly)}<small>/ month</small>`;
+    card.querySelector('.option-yearly').innerHTML = `${money.format(option.selected_monthly * 12)}<small>/ year</small>`;
+    card.querySelector('.option-projection').textContent = gap > 0
+      ? `Projected value ${money.format(projectedValue)} • Gap ${money.format(gap)}`
+      : `Projected value ${money.format(projectedValue)} • Surplus ${money.format(Math.abs(gap))}`;
+  });
   updateInvestmentTotals();
 }
 
@@ -151,7 +147,7 @@ function updateInvestmentTotals() {
   document.querySelector('#investment-total-min').textContent = `${money.format(Math.min(...amounts))} / month`;
   document.querySelector('#investment-total-max').textContent = `${money.format(Math.max(...amounts))} / month`;
   document.querySelector('#investment-total-period').textContent = `${Math.min(...periods)}–${Math.max(...periods)} years`;
-  document.querySelector('#investment-total-note').textContent = 'Minimum and maximum are alternative option scenarios. The total assumes the selected amount is allocated to every card; compare options individually before investing.';
+  document.querySelector('#investment-total-note').textContent = `The portfolio contribution is split equally across all ${investmentState.length} categories. Their projected values are added at the end of the ${Math.max(...periods)}-year tenure.`;
 }
 
 function showError(data) {
@@ -161,6 +157,10 @@ function showError(data) {
 form.addEventListener('submit', async (event) => {
   event.preventDefault();
   message.textContent = '';
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
   const goals = collectGoals();
   if (!goals.length) { message.textContent = 'Turn on at least one goal before calculating.'; return; }
   const button = form.querySelector('button[type="submit"]');

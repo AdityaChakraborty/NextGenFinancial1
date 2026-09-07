@@ -34,7 +34,7 @@
         <div class="form-grid">
           <label class="field">
             <span>Your name</span>
-            <input name="name" type="text" placeholder="e.g. Asha Mehta" required maxlength="100">
+            <input name="name" type="text" placeholder="e.g. Asha Mehta" required maxlength="100" pattern="[A-Za-z]+(?:[ .'-][A-Za-z]+)*" title="Use letters, spaces, apostrophes, periods, or hyphens only">
           </label>
           <label class="field">
             <span>Your age</span>
@@ -50,7 +50,7 @@
             </select>
           </label>
           <label class="field">
-            <span>Monthly salary <small>INR</small></span>
+            <span>Monthly salary fallback <small>INR</small></span>
             <input name="salary" type="number" min="1000" max="10000000" step="1000" inputmode="numeric" placeholder="120000" required>
           </label>
           <label class="field">
@@ -58,12 +58,12 @@
             <input name="saving_percentage" type="number" min="1" max="100" step="1" value="30" required>
           </label>
           <label class="field">
-            <span>Education <small>optional model input</small></span>
-            <input name="education" type="text" maxlength="100" placeholder="e.g. B.E. / MBA">
+            <span>Education <small>primary profile input</small></span>
+            <input name="education" type="text" maxlength="100" placeholder="e.g. B.E. / MBA" pattern=".*[A-Za-z].*" title="Enter text containing at least one letter" required>
           </label>
           <label class="field">
-            <span>Job role <small>optional model input</small></span>
-            <input name="job_role" type="text" maxlength="100" placeholder="e.g. Software Engineer">
+            <span>Job role <small>primary profile input</small></span>
+            <input name="job_role" type="text" maxlength="100" placeholder="e.g. Software Engineer" pattern=".*[A-Za-z].*" title="Enter text containing at least one letter" required>
           </label>
         </div>
 
@@ -140,8 +140,8 @@
           <article class="focus-panel"><p class="eyebrow">Priority</p><p id="priority-focus"></p><p id="priority-action"></p><p id="horizon-note"></p></article>
           <article class="steps-panel"><p class="eyebrow">Three useful moves</p><ol id="suggestion-steps"></ol></article>
         </div>
-        <div class="investment-panel"><div><p class="eyebrow">Explore investment options</p><p class="investment-disclaimer">Adjust each option to compare contribution amounts. Projected values are scenarios, not guaranteed returns.</p></div><div id="investment-options" class="investment-grid"></div><div class="investment-total"><span>Selected portfolio total</span><strong id="investment-total-monthly"></strong><span>Projected value across selected options</span><strong id="investment-total-projected"></strong><span>Minimum monthly scenario</span><strong id="investment-total-min"></strong><span>Maximum monthly scenario</span><strong id="investment-total-max"></strong><span>Investment timeline range</span><strong id="investment-total-period"></strong><p id="investment-total-note"></p></div></div>
-        <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Optional model insight</p><p id="model-insight-text"></p></div>
+        <div class="investment-panel"><div><p class="eyebrow">Explore investment options</p><p class="investment-disclaimer">Set one monthly portfolio contribution. It is divided equally across every category, then the projected values are added at the end of the tenure.</p></div><div id="investment-options" class="investment-grid"></div><div class="investment-total"><span>Total monthly portfolio contribution</span><strong id="investment-total-monthly"></strong><span>Projected value across all categories</span><strong id="investment-total-projected"></strong><span>Equal monthly category share</span><strong id="investment-total-min"></strong><span>Equal monthly category share</span><strong id="investment-total-max"></strong><span>Investment timeline range</span><strong id="investment-total-period"></strong><p id="investment-total-note"></p></div></div>
+        <div class="model-insight" id="model-insight" hidden><p class="eyebrow">Profile salary insight</p><p id="model-insight-text"></p></div>
       </section>
     </div>
   </section>

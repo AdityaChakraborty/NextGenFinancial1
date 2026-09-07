@@ -5,13 +5,18 @@ A local FastAPI financial dream planner for fresher students. It uses the suppli
 ## Run locally
 
 ```bash
-python3 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Open `http://127.0.0.1:8000` for the planner UI or `http://127.0.0.1:8000/docs` for the interactive API documentation.
+
+The project is tested with Python 3.13. The dependency pins in `requirements.txt`
+use Python 3.13-compatible FastAPI, Pydantic, Pandas, and scikit-learn releases.
+If `python3.13` is not installed, install Python 3.13 first or use another
+Python version supported by all pinned packages.
 
 For a complete explanation of the architecture, data flow, formulas, validation, and every backend/frontend function, see [`PROJECT_GUIDE.md`](PROJECT_GUIDE.md). For a presentation script and demonstration sequence, see [`DEMO_GUIDE.md`](DEMO_GUIDE.md).
 
@@ -24,6 +29,8 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
     "name": "Asha",
     "age": 22,
     "city": "Pune",
+    "education": "B.Tech",
+    "job_role": "Software Engineer",
     "salary": 120000,
     "saving_percentage": 30,
     "goals": [
@@ -41,23 +48,23 @@ curl -X POST http://127.0.0.1:8000/api/v1/plan \\
 - Challenging means the shortfall is at most 20% of capacity; larger shortfalls are Highly Challenging.
 - This is an educational simulation, not professional financial advice.
 
-The core planner is fully local and uses `city_goal_costs.csv` as its planning reference. The separate salary-model experiment uses `salary_data.csv`. No Supabase, paid API, or RAG is required; model training is optional.
+The core planner is fully local and uses `city_goal_costs.csv` as its planning reference. The profile salary model uses `salary_data.csv`. No Supabase, paid API, or RAG is required; model training is optional because entered salary is retained as a fallback.
 
-## Optional ML experiment
+## Profile salary model
 
-The planner intentionally uses the user's salary directly. The optional salary model is for experimentation and demonstration only:
+The planner uses the primary profile inputs City, Education, and Job Role with the local salary model to estimate monthly salary. The entered salary remains a fallback if the model artifact is unavailable:
 
 ```bash
 python train_model.py --data salary_data.csv --artifact artifacts/salary_predictor.joblib
 ```
 
-The training pipeline cleans the supplied data, removes the empty trailing column and `Age`, compares Extra Trees, Random Forest, and an MLP neural-network baseline, and saves the model with the lowest cross-validated mean absolute error. Check `/api/v1/ml/status` or call `/api/v1/ml/predict-salary` with `City`, `Education`, and `Job_Role` after training. A prediction never replaces the salary entered into the financial planner.
+The training pipeline cleans the supplied data, removes the empty trailing column and `Age`, compares Extra Trees, Random Forest, and an MLP neural-network baseline, and saves the model with the lowest cross-validated mean absolute error. Check `/api/v1/ml/status` or call `/api/v1/ml/predict-salary` with `City`, `Education`, and `Job_Role` after training. The profile prediction is used for affordability and returned in `calculation_profile`.
 
 The UI also loads the available cities from the API, validates input with readable field-level errors, provides a next-step recommendation, and lets the user download the generated plan as JSON.
 
 After calculation, the separate suggestion section identifies the nearest goal to focus on, gives improvement actions based on Achievable/Challenging/Highly Challenging status, and explains mutual funds, gold, stocks, and real estate as broad educational options with risk and liquidity considerations.
 
-Each investment option has a decrease/increase control and slider. Changing an amount recalculates its projected future value, gap or surplus, and the selected portfolio total. Optional Education and Job role fields activate the locally trained model insight; this prediction is a benchmark and never replaces the user's entered salary.
+Each investment option uses an equal share of one portfolio contribution slider. Changing the total recalculates each category's projected future value, the summed tenure value, and the selected portfolio total. Name, age, city, education, and job role are primary profile inputs; age shapes the recommendation horizon, city shapes goal costs, and education/job role shape the salary prediction.
 
 Monthly salary must be a numeric value from INR 1,000 to INR 1,00,00,000. Other numeric inputs are also validated for positive values, supported ranges, and finite numbers.
 

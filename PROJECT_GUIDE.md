@@ -2,11 +2,11 @@
 
 ## 1. What the project does
 
-Next Gen Financial is a local educational financial-planning application for students and early-career users. A user enters their name, age, city, monthly salary, saving percentage, assumptions, and selected goals. The application reads city costs from `city_goal_costs.csv`, projects each goal into the future, calculates the required investment, and checks whether the user's saving capacity is enough.
+Next Gen Financial is a local educational financial-planning application for students and early-career users. A user enters their name, age, city, education, job role, salary fallback, saving percentage, assumptions, and selected goals. The application uses the profile fields to estimate salary, reads city costs from `city_goal_costs.csv`, projects each goal into the future, calculates the required investment, and checks whether saving capacity is enough.
 
-The application is intentionally local. It does not require Supabase, a paid API, RAG, an external LLM, or a salary prediction model.
+The application is intentionally local. It does not require Supabase, a paid API, RAG, or an external LLM. Its local salary prediction model is used when the trained artifact is available.
 
-The optional ML experiment is isolated from the planner. `salary_data.csv` is cleaned by the data pipeline, `Age` is removed from model features to reduce demographic profiling, categorical fields are one-hot encoded, numeric fields are scaled, and three candidates are compared with cross-validation. The selected artifact is used only by the ML endpoints.
+The salary model uses `salary_data.csv`; `Age` is removed from model features to reduce demographic profiling, categorical fields are one-hot encoded, numeric fields are scaled, and three candidates are compared with cross-validation. The selected artifact supports both the salary endpoint and the main planner's profile-based affordability calculation.
 
 ## 2. Project structure
 
@@ -36,7 +36,8 @@ ARCHITECTURE.md                 DFD and request-flow diagram
 3. JavaScript collects only enabled goals and sends JSON to `POST /api/v1/plan`.
 4. Pydantic validates every request field before the calculation runs.
 5. `calculate_selected_goal()` projects each enabled goal and calculates its monthly investment.
-6. `FinancialEngine.feasibility_analysis()` compares the combined monthly requirement to the user's saving capacity.
+6. The local salary model estimates monthly salary from city, education, and job role when available; entered salary is the fallback.
+7. `FinancialEngine.feasibility_analysis()` compares the combined monthly requirement to the profile-based saving capacity.
 7. FastAPI returns deterministic JSON; JavaScript renders the cards, recommendation, and analysis.
 
 ## 4. Backend functions and classes
@@ -59,7 +60,7 @@ Rejects `NaN` and infinite costs so invalid numeric values cannot enter the form
 
 ### `PlanRequest`
 
-Defines the complete planner request: name, age, city, salary, saving percentage, inflation rate, annual return, and one to twelve goals. Salary is limited to INR 1,000–10,000,000 per month.
+Defines the complete planner request: name, age, city, education, job role, salary fallback, saving percentage, inflation rate, annual return, and one to twelve goals. Salary is limited to INR 1,000–10,000,000 per month.
 
 ### `PlanRequest.strip_text()`
 
@@ -107,11 +108,11 @@ The main `/api/v1/plan` endpoint. It calculates all enabled goals, sums their mo
 
 ### ML routes
 
-`ml_status()` reports whether the local joblib artifact exists and returns the selected model, feature list, data-cleaning report, and evaluation records. `predict_salary_endpoint()` accepts city, education, and job role and delegates to the persisted pipeline. Both routes are optional and isolated from the direct-salary planner.
+`ml_status()` reports whether the local joblib artifact exists and returns the selected model, feature list, data-cleaning report, and evaluation records. `predict_salary_endpoint()` accepts city, education, and job role and delegates to the persisted pipeline. The main planner also calls this pipeline when the artifact exists.
 
 ### `ml_status()` and `predict_salary_endpoint()`
 
-Optional endpoints that report the trained model and predict monthly salary from city, education, and job role. They are deliberately separate from `/api/v1/plan`, because the project requirement is that salary is provided directly by the user.
+These endpoints report the trained model and predict monthly salary from city, education, and job role. `/api/v1/plan` uses the same profile prediction for affordability and returns the salary source in `calculation_profile`.
 
 ## 4.1 Recommendation functions
 
@@ -121,9 +122,9 @@ Sorts enabled goals by timeline, selects the nearest goal as the first priority,
 
 It also returns three practical next steps and educational overview cards for mutual funds, gold, stocks, and real estate. These are not personalized financial advice or product recommendations; each card explains a broad use, risk level, and planning consideration.
 
-The cards also include Fixed Deposit (FD). Each option uses an illustrative annual rate, calculates the monthly and yearly contribution needed for the priority goal, and reports the projected target value and modeled growth. These figures are scenarios, not guaranteed returns.
+The cards also include Fixed Deposit (FD). One portfolio-level monthly contribution is divided equally across all five categories. Each option uses an illustrative annual rate, projects its equal share through the selected tenure, and the UI adds all projected values together. These figures are scenarios, not guaranteed returns.
 
-The browser then lets the user increase or decrease each option amount. `updateInvestmentOption()` recalculates the compound projected value and gap/surplus, while `updateInvestmentTotals()` aggregates the currently selected amounts across the option cards. The totals also show the minimum and maximum monthly amounts across the alternative investment scenarios and the shortest-to-longest goal timeline. The note explains that summing every option is a comparison portfolio, not a recommendation to buy every product.
+The browser lets the user adjust one portfolio contribution slider. `updateInvestmentPortfolio()` divides it equally across the option cards, recalculates each compound projected value and gap/surplus, while `updateInvestmentTotals()` aggregates the equal contributions and projected values. The note explains that the categories are combined for the selected portfolio scenario, not a recommendation to buy every product.
 
 ## 5. Calculation engine functions
 
@@ -229,10 +230,15 @@ Serializes the latest returned plan into `financial-dream-plan.json` for local d
 ## 8. Run locally
 
 ```bash
-python3 -m venv .venv
+python3.13 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
-uvicorn main:app --reload
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 Open `http://127.0.0.1:8000` in a desktop browser. API documentation is available at `http://127.0.0.1:8000/docs`.
+
+The project uses Python 3.13 for the local environment. The pinned versions in
+`requirements.txt` include FastAPI 0.115.6, Uvicorn 0.34.0, Pandas 2.2.3,
+Pydantic 2.10.5, scikit-learn 1.6.1, joblib 1.4.2, and httpx 0.28.1.
+`httpx` is included because the FastAPI test client depends on it.

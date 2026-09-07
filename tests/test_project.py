@@ -19,6 +19,8 @@ class PlannerApiTests(unittest.TestCase):
             "name": "Rahul",
             "age": 22,
             "city": "Bangalore",
+            "education": "B.E.",
+            "job_role": "Software Engineer",
             "salary": 40000,
             "saving_percentage": 20,
             "inflation_rate": 6,
@@ -39,7 +41,14 @@ class PlannerApiTests(unittest.TestCase):
         body = response.json()
         self.assertEqual(body["goals"][0]["name"], "Marriage")
         self.assertIn("analysis", body)
+        self.assertEqual(body["calculation_profile"]["salary_source"], "profile prediction")
         self.assertEqual(len(body["suggestion_plan"]["investment_options"]), 5)
+
+    def test_profile_fields_are_required(self):
+        for field in ("education", "job_role"):
+            incomplete = {**self.base}
+            incomplete.pop(field)
+            self.assertEqual(self.client.post("/api/v1/plan", json=incomplete).status_code, 422)
 
     def test_salary_boundaries_and_invalid_goal_cost(self):
         for salary, expected_status in ((999, 422), (1000, 200), (10_000_000, 200), (10_000_001, 422)):
@@ -52,6 +61,12 @@ class PlannerApiTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/v1/plan", json={**self.base, "goals": []}).status_code, 422)
         duplicate = {**self.base, "goals": [self.base["goals"][0], {**self.base["goals"][0], "name": " marriage "}]}
         self.assertEqual(self.client.post("/api/v1/plan", json=duplicate).status_code, 422)
+
+    def test_invalid_person_names_are_rejected(self):
+        for name in ("banan1", "1111"):
+            response = self.client.post("/api/v1/plan", json={**self.base, "name": name})
+            self.assertEqual(response.status_code, 422)
+            self.assertIn("letter", response.json()["errors"][0]["message"])
 
 
 class DomainTests(unittest.TestCase):

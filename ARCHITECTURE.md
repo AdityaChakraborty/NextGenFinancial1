@@ -12,7 +12,7 @@ flowchart LR
     Suggestions --> API
     API -->|JSON results| UI
     UI --> Results[Goal cards, totals, recommendations]
-    User -->|Optional profile| ML[ML endpoints]
+    User -->|Primary profile: city, education, job role| ML[Salary model]
     ML --> Pipeline[data_pipeline]
     Pipeline --> Salary[(salary_data.csv)]
     ML --> Models[ml_models: tree models and MLP]
@@ -28,11 +28,11 @@ flowchart LR
 5. FastAPI returns deterministic JSON.
 6. The browser displays current cost, future cost, monthly investment, capacity, and shortfall/surplus.
 
-## Optional model flow
+## Profile salary flow
 
 1. `train_model.py` reads `salary_data.csv`.
 2. `data_pipeline/preprocess.py` removes empty or invalid data and excludes `Age` from features.
 3. `ml_models/salary_predictor.py` encodes the categories, compares three regressors, and stores the winner locally.
 4. `/api/v1/ml/status` reports the model and evaluation metadata.
-5. `/api/v1/ml/predict-salary` returns a benchmark from city, education, and job role.
-6. The prediction is informational and never replaces the salary used by `/api/v1/plan`.
+5. `/api/v1/ml/predict-salary` returns the profile-based salary estimate from city, education, and job role.
+6. `/api/v1/plan` uses that estimate for affordability when the local artifact exists; entered salary is the fallback if it does not.

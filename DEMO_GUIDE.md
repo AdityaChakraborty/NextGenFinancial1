@@ -4,9 +4,9 @@ This guide is written for presenting the project in a viva, assessment, or live 
 
 ## One-minute explanation
 
-Next Gen Financial is a local web application that turns a user's salary and selected life goals into a transparent savings plan. The user chooses a city, edits the cost and timing of each goal, and marks goals as Planned or Paused. The server applies the selected inflation and return assumptions, then compares the required monthly amount with the saving capacity derived from salary and saving percentage.
+Next Gen Financial is a local web application that turns a user's profile and selected life goals into a transparent savings plan. The user enters name, age, city, education, and job role, edits the cost and timing of each goal, and marks goals as Planned or Paused. The server uses the profile salary estimate, applies the selected inflation and return assumptions, then compares the required monthly amount with saving capacity.
 
-The optional intelligence layer does two separate jobs. A rule-based recommendation module decides which goal deserves attention first and explains how to improve the plan. A small, locally trained salary model can provide a benchmark from city, education, and job role. The benchmark is never substituted for the salary entered by the user, because the core project requirement is direct user input.
+The intelligence layer has two jobs. A rule-based recommendation module decides which goal deserves attention first and explains how to improve the plan. A small, locally trained salary model estimates monthly salary from city, education, and job role; the entered salary is used only as a fallback when the artifact is unavailable.
 
 ## Five-minute demonstration
 
@@ -14,11 +14,15 @@ The optional intelligence layer does two separate jobs. A rule-based recommendat
 
 ```bash
 cd "/Users/adi/Desktop/vscode /webskitters/finalcial calculator"
+python3.13 -m venv .venv
 source .venv/bin/activate
-uvicorn main:app --reload
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --host 127.0.0.1 --port 8000 --reload
 ```
 
-Open `http://127.0.0.1:8000`.
+Open `http://127.0.0.1:8000` or the interactive API documentation at
+`http://127.0.0.1:8000/docs`. This project uses Python 3.13 and the pinned
+dependency versions in `requirements.txt`.
 
 ### 2. Show the starting form
 
@@ -26,8 +30,8 @@ Point out:
 
 - Student name and age.
 - City loaded from the reference CSV.
-- Monthly salary and saving percentage.
-- Optional education and job role fields for the model benchmark.
+- Monthly salary fallback and saving percentage.
+- Required education and job role fields used for the profile salary calculation.
 - Inflation and annual-return sliders.
 - Goal cards with cost, years, contribution frequency, and Planned/Paused state.
 
@@ -44,6 +48,8 @@ Use this sample:
 - Name: Rahul
 - Age: 22
 - City: Bangalore
+- Education: B.E.
+- Job role: Software Engineer
 - Salary: ₹40,000
 - Saving percentage: 20%
 - Inflation: 6%
@@ -57,7 +63,7 @@ The nearest enabled timeline becomes the priority. If the plan is Achievable, th
 
 ### 6. Compare investment scenarios
 
-Scroll to the investment cards. Explain that each card is an independent scenario, not a command to buy every product:
+Scroll to the investment cards. Explain that one monthly portfolio contribution is divided equally across all categories, and their projected values are added at the end of the tenure:
 
 - Mutual funds: diversified long-term growth scenario.
 - Fixed deposit: stability-oriented scenario.
@@ -65,11 +71,11 @@ Scroll to the investment cards. Explain that each card is an independent scenari
 - Stocks: higher-risk long-horizon scenario.
 - Real estate: large-asset and liquidity planning scenario.
 
-Use the plus, minus, or slider control on one card. Show that its monthly amount, projected value, gap/surplus, and the selected portfolio summary change immediately.
+Use the portfolio slider. Show that the equal per-category amount, each projected value, and the summed portfolio projection change immediately.
 
-### 7. Show the optional model insight
+### 7. Show the profile calculation
 
-Enter `BCA` for education and `Web Developer` for job role, then calculate again. The page may show the locally trained Random Forest benchmark. Explain that this is an optional experiment and that the direct salary field still controls the financial plan.
+Enter `BCA` for education and `Web Developer` for job role, then calculate again. The page shows the locally trained model estimate and uses it for the affordability calculation. The salary field remains available as a fallback.
 
 ## How to explain the calculation
 
